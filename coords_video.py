@@ -1,5 +1,5 @@
 """
-
+import Qt modules
 """
 
 import json
@@ -7,8 +7,17 @@ import sys
 
 import cv2
 import numpy as np
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QBrush, QImage, QPen, QPixmap, QPainter, QKeySequence
+from PyQt5.QtCore import Qt, QTimer, QPointF, QLineF
+from PyQt5.QtGui import (
+    QBrush,
+    QImage,
+    QPen,
+    QPixmap,
+    QPainter,
+    QKeySequence,
+    QPolygonF,
+    QColor,
+)
 from PyQt5.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -24,6 +33,7 @@ from PyQt5.QtWidgets import (
     QShortcut,
     QGraphicsLineItem,
     QGraphicsEllipseItem,
+    QGraphicsPolygonItem,
 )
 
 
@@ -104,6 +114,9 @@ class VideoPointSelector(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.next_frame)
         self.playing = False
+
+        # Polygon Attributes
+        self.polygon_closed = False  # Keeps track of whether the polygon is closed
 
         # Zoom Attributes
         self.zoom_factor = 1.0
@@ -195,29 +208,146 @@ class VideoPointSelector(QWidget):
 
     def display_pixmap(self, pixmap):
         """
-        Update the displayed image or video frame and redraw any marked points.
+        Displays the given pixmap in the scene, along with any drawn points and
+        polygons. If the polygon is closed, it is redrawn and filled.
+
+        This method:
+        - Clears the current scene and removes any existing pixmap.
+        - Adds the new pixmap to the scene.
+        - Redraws previously stored points.
+        - If the polygon is closed, it redraws the polygon.
+        - Adjusts the view to fit the new pixmap.
+        - Temporarily disables and then reinstalls the event filter.
+
+        Args:
+            pixmap (QPixmap): The image to be displayed in the scene.
         """
-        self.view.viewport().removeEventFilter(self)  # Disable event filter temporarily
+        self.view.viewport().removeEventFilter(self)  # Temporarily disable event filter
         self.current_pixmap = pixmap
 
         if self.pixmap_item:
             self.scene.removeItem(self.pixmap_item)
 
         self.pixmap_item = QGraphicsPixmapItem(pixmap)
-        self.scene.clear()
+        self.scene.clear()  # Clear scene before re-adding items
         self.scene.addItem(self.pixmap_item)
-        self.view.setScene(self.scene)
-        self.view.fitInView(self.pixmap_item, Qt.KeepAspectRatio)
 
-        # Redraw all saved points
+        # Redraw points
+        polygon_points = []
         for x, y in self.points:
             self.draw_point(x, y)
+            polygon_points.append(QPointF(x, y))
 
+        # Redraw the polygon if it's closed
+        if len(polygon_points) > 2 and self.polygon_closed:
+            self.draw_polygon(polygon_points)
+
+        self.view.setScene(self.scene)
+        self.view.fitInView(self.pixmap_item, Qt.KeepAspectRatio)
         self.view.viewport().installEventFilter(self)  # Re-enable event filter
+
+    def draw_polygon(self, polygon_points):
+        """
+        Draws the polygon from the points
+
+        This method draws the edges from a list of coordinates, if the polygon is
+        closed (the last and first points are 1), it shades the area.
+        Args:
+            polygon_points (list of list of float): list of coordinates of the
+            vertices
+        """
+        if len(polygon_points) < 2:
+            return  # Not enough points to form a line
+
+        # Remove previously drawn items (to avoid duplicates)
+        for item in self.scene.items():
+            if isinstance(item, (QGraphicsLineItem, QGraphicsPolygonItem)):
+                self.scene.removeItem(item)
+
+        pen = QPen(Qt.red, 2)
+        polygon = QPolygonF(polygon_points)  # Convert to QPolygonF
+
+        # Draw the edges
+        for i in range(len(polygon_points) - 1):
+            line = QGraphicsLineItem(QLineF(polygon_points[i], polygon_points[i + 1]))
+            line.setPen(pen)
+            self.scene.addItem(line)
+
+        if self.polygon_closed:
+            # Draw the closing edge
+            closing_line = QGraphicsLineItem(
+                QLineF(polygon_points[-1], polygon_points[0])
+            )
+            closing_line.setPen(pen)
+            self.scene.addItem(closing_line)
+
+            # Fill the polygon with transparency (add this LAST)
+            brush = QBrush(QColor(255, 0, 0, 80))  # Red with 80/255 alpha transparency
+            polygon_item = QGraphicsPolygonItem(polygon)
+            polygon_item.setBrush(brush)
+            polygon_item.setPen(QPen(Qt.NoPen))  # No border lines on the filled area
+            self.scene.addItem(polygon_item)  # Add the filled polygon last
+        if len(polygon_points) < 2:
+            return  # Not enough points to form a line
+
+        # Remove previously drawn items (to avoid duplicates)
+        for item in self.scene.items():
+            if isinstance(item, (QGraphicsLineItem, QGraphicsPolygonItem)):
+                self.scene.removeItem(item)
+
+        pen = QPen(Qt.red, 2)
+        polygon = QPolygonF(polygon_points)  # Convert to QPolygonF
+
+        # Draw the edges
+        for i in range(len(polygon_points) - 1):
+            line = QGraphicsLineItem(QLineF(polygon_points[i], polygon_points[i + 1]))
+            line.setPen(pen)
+            self.scene.addItem(line)
+
+        if self.polygon_closed:
+            # Draw the closing edge
+            closing_line = QGraphicsLineItem(
+                QLineF(polygon_points[-1], polygon_points[0])
+            )
+            closing_line.setPen(pen)
+            self.scene.addItem(closing_line)
+
+            # Fill the polygon with transparency (add this LAST)
+            brush = QBrush(QColor(255, 0, 0, 80))  # Red with 80/255 alpha transparency
+            polygon_item = QGraphicsPolygonItem(polygon)
+            polygon_item.setBrush(brush)
+            polygon_item.setPen(QPen(Qt.NoPen))  # No border lines on the filled area
+            self.scene.addItem(polygon_item)  # Add the filled polygon last
+
+    def close_polygon(self):
+        """
+        Closes the polygon by connecting the last point to the first.
+
+        This method:
+        - Ensures that there are at least three points before closing the polygon.
+        - Sets the `polygon_closed` flag to `True`.
+        - Adds the first point to the end of the `polygon_points` list to form a closed shape.
+        - Calls `draw_polygon` to render the closed polygon.
+
+        """
+        if len(self.polygon_points) > 2:  # Need at least 3 points to close
+            self.polygon_closed = True
+            self.polygon_points.append(self.polygon_points[0])  # Connect last to first
+            self.draw_polygon(self.polygon_points)
 
     def map_to_image_coordinates(self, pos):
         """
-        Convert the cursor position to image coordinates.
+        Converts the cursor position in the view to image coordinates.
+
+        This method maps a given cursor position from the view to the corresponding
+        coordinates on the displayed image.
+
+        Args:
+            pos (QPoint): The cursor position in the view's coordinate system.
+
+        Returns:
+            tuple: A tuple (x, y) representing the corresponding coordinates
+                   on the image.
         """
         scene_pos = self.view.mapToScene(pos)
         x, y = (
@@ -228,7 +358,20 @@ class VideoPointSelector(QWidget):
 
     def eventFilter(self, obj, event):
         """
-        Handle mouse events for cursor tracking, point marking, and closing the shape on double-click.
+        Handles mouse events for cursor tracking, point marking, and closing the polygon.
+
+        This method processes mouse interactions within the viewport, allowing the user to:
+        - Track the cursor position and update the label dynamically.
+        - Mark points on the image with left-click.
+        - Remove the nearest point with right-click.
+        - Close the polygon on a double-click if there are enough points.
+
+        Args:
+            obj (QObject): The object receiving the event (typically the viewport).
+            event (QEvent): The event being processed (mouse movement, click, etc.).
+
+        Returns:
+            bool: True if the event is handled and should not propagate further, False otherwise.
         """
         if obj == self.view.viewport() and self.pixmap_item:
             if self.playing:  # Ignore events during video playback
@@ -263,20 +406,25 @@ class VideoPointSelector(QWidget):
                         return True  # Stop recursion
 
             elif event.type() == event.MouseButtonDblClick:
-                # If double-click detected, close the shape
-                if len(self.points) > 1:
-                    first_x, first_y = self.points[0]  # First point
-                    last_x, last_y = self.points[-1]  # Last point
-                    self.scene.addLine(
-                        last_x, last_y, first_x, first_y, QPen(Qt.red, 2)
-                    )
-                    return True  # Stop recursion
+                if len(self.points) > 2:
+                    # Close the polygon by connecting the last point to the first
+                    self.points.append(self.points[0])
+                    self.polygon_closed = True
+                    self.display_pixmap(self.current_pixmap)  # Redraw the scene
 
         return False  # Allow normal event propagation
 
     def draw_point(self, x, y):
         """
         Draw a red dot at the specified coordinates and connect it to the previous point with a line.
+
+        This method draws a red dot at the position of the cursor when there's a
+        left click. The coordinates takes the upper left corner of the image as
+        (0,0)
+
+        Args:
+            x (float): the horizontal coordinate of the cursor
+            y (float): the vertical coordinate of the cursor
         """
         # Draw the red dot
         dot = self.scene.addEllipse(x - 5, y - 5, 10, 10, QPen(Qt.red), QBrush(Qt.red))
@@ -292,9 +440,19 @@ class VideoPointSelector(QWidget):
 
     def undo_last_point(self):
         """
-        Undo the last added point.
-        - If the shape is closed (last point connects to the first), remove only the closing line.
-        - If the shape is not closed, remove the last point and its connecting line.
+        Undo the last added point and its associated line.
+
+        This method handles two cases:
+        1. If the polygon is closed (i.e., the last point connects to the first), only the closing line is removed.
+        2. If the polygon is not closed, the last point and the line connecting it to the previous point are removed.
+
+        Functionality:
+        - Identifies and removes the last drawn line if applicable.
+        - Removes the corresponding graphical point representation (red dot).
+        - Updates the internal list of points.
+
+        Returns:
+            None
         """
         if not self.points:
             return  # No points to undo
@@ -371,6 +529,7 @@ class VideoPointSelector(QWidget):
     def remove_nearest_point(self, x, y, threshold=10):
         """
         Remove the nearest point to the given (x, y) position if within a threshold.
+        (This function is not used)
         """
         if not self.points:
             return
@@ -393,6 +552,17 @@ class VideoPointSelector(QWidget):
     def keyPressEvent(self, event):
         """
         Handle keyboard shortcuts for common actions.
+
+        Supported Key Bindings:
+        - Spacebar: Toggles video playback (Play/Pause).
+        - 'Z': Undoes the last added point.
+        - 'Ctrl + S': Saves the drawn points as a JSON file.
+
+        Args:
+            event (QKeyEvent): The key press event triggered by user input.
+
+        Returns:
+            None
         """
         if event.key() == Qt.Key_Space:
             self.toggle_playback()  # Space: Play/Pause
@@ -424,7 +594,16 @@ class VideoPointSelector(QWidget):
 
     def wheelEvent(self, event):
         """
-        Handle mouse wheel events for zooming.
+        Handle mouse wheel events for zooming in and out.
+
+        - Scroll up (positive delta): Zooms in.
+        - Scroll down (negative delta): Zooms out.
+
+        Args:
+            event (QWheelEvent): The wheel event triggered by the mouse scroll.
+
+        Returns:
+            None
         """
         if event.angleDelta().y() > 0:
             self.zoom_in()
@@ -440,7 +619,7 @@ class VideoPointSelector(QWidget):
 
     def zoom_out(self):
         """
-        Zoom out on the image or video.
+        Zoom out on the image or video using the scroll wheel
         """
         self.view.scale(1 / 1.2, 1 / 1.2)
         self.zoom_factor /= 1.2
