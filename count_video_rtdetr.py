@@ -206,7 +206,7 @@ class PolygonDetectionApp(QMainWindow):
         """Initialize the application window and setup UI components."""
         super().__init__()
         self.setWindowTitle("YOLOv8 Polygon Detection")
-        self.setGeometry(1000, 100, 1600, 900)
+        self.setGeometry(100, 100, 1600, 900)
 
         # Initialize state
         self.video_path: Optional[str] = None
