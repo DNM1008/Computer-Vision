@@ -10,30 +10,31 @@ import numpy as np
 from PyQt5.QtCore import Qt, QTimer, QPointF, QLineF
 from PyQt5.QtGui import (
     QBrush,
+    QColor,
     QImage,
+    QKeySequence,
+    QPainter,
     QPen,
     QPixmap,
-    QPainter,
-    QKeySequence,
     QPolygonF,
-    QColor,
 )
 from PyQt5.QtWidgets import (
     QApplication,
+    QCheckBox,
     QFileDialog,
+    QGraphicsEllipseItem,
+    QGraphicsLineItem,
     QGraphicsPixmapItem,
+    QGraphicsPolygonItem,
     QGraphicsScene,
     QGraphicsView,
+    QHBoxLayout,
     QLabel,
     QPushButton,
+    QShortcut,
+    QSlider,
     QVBoxLayout,
     QWidget,
-    QSlider,
-    QHBoxLayout,
-    QShortcut,
-    QGraphicsLineItem,
-    QGraphicsEllipseItem,
-    QGraphicsPolygonItem,
 )
 
 
@@ -121,6 +122,22 @@ class VideoPointSelector(QWidget):
         # Zoom Attributes
         self.zoom_factor = 1.0
 
+        # Viewing mode checkbox
+        self.edit_mode = False
+        self.toggle_edit_button = QCheckBox("Edit Mode", self)
+        self.toggle_edit_button.stateChanged.connect(self.toggle_edit_mode)
+        self.layout.addWidget(self.toggle_edit_button)  # Add the checkbox to the layout
+
+    def toggle_edit_mode(self, state):
+        """
+        Toggle Edit mode. If the program is in edit mode, the user can
+        add/remove dots, if not then they can only view them.
+        Args:
+            state (bool): whether the program is in edit mode or not
+        """
+        self.edit_mode = state == Qt.Checked
+        self.undo_button.setEnabled(self.edit_mode)  # Enable undo only in edit mode
+
     def load_media(self):
         """
         Open a file dialog to load an image or video.
@@ -150,7 +167,10 @@ class VideoPointSelector(QWidget):
 
     def load_video(self):
         """
-        Load and initialize video playback.
+        Load and display a video, could either be mp4, avi, mov, or mkv. The
+        video is paused by default
+
+        For now, it is assumed that the the user would always load a video
         """
         self.video = cv2.VideoCapture(self.media_path)
         if not self.video.isOpened():
@@ -363,7 +383,6 @@ class VideoPointSelector(QWidget):
         This method processes mouse interactions within the viewport, allowing the user to:
         - Track the cursor position and update the label dynamically.
         - Mark points on the image with left-click.
-        - Remove the nearest point with right-click.
         - Close the polygon on a double-click if there are enough points.
 
         Args:
@@ -374,7 +393,9 @@ class VideoPointSelector(QWidget):
             bool: True if the event is handled and should not propagate further, False otherwise.
         """
         if obj == self.view.viewport() and self.pixmap_item:
-            if self.playing:  # Ignore events during video playback
+            if (
+                self.playing or not self.edit_mode
+            ):  # Ignore events during video playback
                 return False
 
             if event.type() == event.MouseMove:
@@ -530,6 +551,12 @@ class VideoPointSelector(QWidget):
         """
         Remove the nearest point to the given (x, y) position if within a threshold.
         (This function is not used)
+        Args:
+            x (float): horizontal position of the cursor at current position
+            y (float): vertical position of the cursor at current position
+            threshold (int = 10): how far can a dot be to be considered in this
+            function (if the nearest point is still too far away, it might not
+            be what the user is looking to remove)
         """
         if not self.points:
             return

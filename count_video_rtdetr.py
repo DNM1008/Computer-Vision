@@ -1,3 +1,10 @@
+"""
+This is a port of count_video.py at a point in time, using RT-DETR-L instead of
+YOLOv8l. Due to virtually identical syntax, this could serve as a snapshot of
+count_video.py itself, or, should the need arise in the future, this could serve as a template
+to subtitute RT-DETR-L for YOLOv8l.
+"""
+
 import json
 import sys
 import time

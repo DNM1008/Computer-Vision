@@ -1,5 +1,4 @@
 """
-
 import necessary modules for the Qt app
 """
 
