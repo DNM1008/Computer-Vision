@@ -597,6 +597,9 @@ class PolygonDetectionApp(QMainWindow):
             - Changes the status label color to red if the detected count exceeds
               the defined threshold for a sustained duration.
             - Displays the number of people in the zone and the total count.
+                - Changes the colour to red if the number of people exceeds the
+                  threshold for at least 10 seconds, could implement other
+                  functions here.
             - Logs frame detection details including count and inference time.
             - Updates the displayed video frame using QImage and QPixmap.
 
@@ -608,12 +611,14 @@ class PolygonDetectionApp(QMainWindow):
             if self.high_count_frames > self.max_high_count_frames:
                 self.status_label.setStyleSheet(
                     "font-size: 50px; font-weight: bold; font-family: Arial; color: red;"
-                )
+                )  # Warning that there are more people in the zone
+                # Could run special functions here, for example a function to
+                # send emails to whoever in charge
         else:
             self.high_count_frames = 0
             self.status_label.setStyleSheet(
                 "font-size: 50px; font-weight: bold; font-family: Arial; color: black;"
-            )
+            )  # Text in normal state
 
         self.status_label.setText(
             f"People in zone: {count} (Total detected: {total_count})"
@@ -660,10 +665,7 @@ class PolygonDetectionApp(QMainWindow):
 
 
 if __name__ == "__main__":
-    w = 1600
-    h = 900
     app = QApplication(sys.argv)
     window = PolygonDetectionApp()
-    window.resize(w, h)
     window.show()
     sys.exit(app.exec_())
