@@ -26,7 +26,7 @@ tested only on Linux thus far.
 
 ## Overview of the applications
 
-There are 8 python files, 7 of which (minus debug.py) should run a GUI.
+In `/ModelsYolo/python/apps/`, there are 8 python files, 7 of which (minus debug.py) should run a GUI.
 
 - `area_define.py` is used for testing, it should allow the user to import an
   image file and a coordinate file and graph those coordinates on the image,
