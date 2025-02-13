@@ -26,7 +26,7 @@ tested only on Linux thus far.
 
 ## Overview of the applications
 
-In `/ModelsYolo/python/apps/`, there are 8 python files, 7 of which (minus debug.py) should run a GUI.
+In `/ModelsYolo/python/apps/`, there are 8 python files, 7 of which (minus `debug.py`) should run a GUI.
 
 - `area_define.py` is used for testing, it should allow the user to import an
   image file and a coordinate file and graph those coordinates on the image,
@@ -53,5 +53,5 @@ break in under any edge case.
 
 - Debug and ensure that the programs work in more edge cases
 - Eventually test and compile code into executables for easier deployment
-- Test out other viable models (RT-DETR) is being tested
+- Test out other viable models (RT-DETR)
 - Solve other problems that face banks.
