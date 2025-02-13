@@ -92,7 +92,7 @@ class VideoPointSelector(QWidget):
         self.play_pause_button.setEnabled(False)
         self.right_panel.addWidget(self.play_pause_button)
 
-        self.save_json_button = QPushButton("Save as JSON", self)
+        self.save_json_button = QPushButton("Save coordinates", self)
         self.save_json_button.clicked.connect(self.save_points_json)
         self.right_panel.addWidget(self.save_json_button)
 
@@ -105,7 +105,7 @@ class VideoPointSelector(QWidget):
         self.threshold_spinbox.setRange(1, 10)
         self.threshold_spinbox.setValue(5)
 
-        self.right_panel.addWidget(QLabel("Number of dots:"))
+        self.right_panel.addWidget(QLabel("Maximum vertices threshold:"))
         self.right_panel.addWidget(self.threshold_spinbox)
 
         # Labels

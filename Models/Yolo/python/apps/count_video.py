@@ -27,7 +27,8 @@ from ultralytics import YOLO
 
 
 class StreamRedirect:
-    """Redirects stdout & stderr to both QTextEdit and terminal with thread safety.
+    """
+    Redirects stdout & stderr to both QTextEdit and terminal with thread safety.
 
     A utility class that captures standard output and error streams and redirects them
     to both a QTextEdit widget and the terminal, ensuring thread-safe operation.
@@ -38,7 +39,8 @@ class StreamRedirect:
     """
 
     def __init__(self, text_widget: QTextEdit) -> None:
-        """Initialize the stream redirector.
+        """
+        Initialize the stream redirector.
 
         Args:
             text_widget: QTextEdit widget where output will be displayed.
@@ -47,7 +49,8 @@ class StreamRedirect:
         self._buffer = []
 
     def write(self, message: str) -> None:
-        """Write a message to both the text widget and terminal.
+        """
+        Write a message to both the text widget and terminal.
 
         Args:
             message: The string message to be written.
@@ -58,7 +61,8 @@ class StreamRedirect:
             sys.__stdout__.flush()
 
     def flush(self) -> None:
-        """Flush the output stream.
+        """
+        Flush the output stream.
 
         Ensures all pending output is processed and displayed.
         """
@@ -67,7 +71,8 @@ class StreamRedirect:
 
 
 class VideoProcessor:
-    """Handles video processing operations using YOLOv8 for object detection.
+    """
+    Handles video processing operations using YOLOv8 for object detection.
 
     This class manages video frame processing, object detection, and visualization
     of detection results including polygon zones and detected persons.
@@ -82,7 +87,8 @@ class VideoProcessor:
     """
 
     def __init__(self, model_path: str = "yolov8l.pt"):
-        """Initialize the video processor.
+        """
+        Initialize the video processor.
 
         Args:
             model_path: Path to the YOLO model weights file.
@@ -97,7 +103,8 @@ class VideoProcessor:
     def draw_polygon(
         self, frame: np.ndarray, polygon_points: List[List[int]]
     ) -> np.ndarray:
-        """Draw the detection zone polygon on the frame.
+        """
+        Draw the detection zone polygon on the frame.
 
         Args:
             frame: Input video frame.
@@ -188,7 +195,8 @@ class VideoProcessor:
 
 
 class PolygonDetectionApp(QMainWindow):
-    """GUI application for detecting people inside a polygon using YOLOv8.
+    """
+    GUI application for detecting people inside a polygon using YOLOv8.
 
     This class implements a complete application for real-time person detection
     within a defined polygon zone using YOLOv8 object detection.
@@ -220,7 +228,8 @@ class PolygonDetectionApp(QMainWindow):
         self._setup_signals()
 
     def _setup_ui(self) -> None:
-        """Initialize and setup UI components.
+        """
+        Initialize and setup UI components.
 
         Creates and arranges all UI elements including video display,
         control buttons, and output panels.
@@ -243,7 +252,7 @@ class PolygonDetectionApp(QMainWindow):
         controls_layout = QHBoxLayout()
 
         self.import_video_btn = QPushButton("Import Video")
-        self.import_json_btn = QPushButton("Import JSON")
+        self.import_json_btn = QPushButton("Import coordinates")
         self.change_color_btn = QPushButton("Change Polygon Color")
         self.start_detection_btn = QPushButton("Start Detection")
         self.start_detection_btn.setStyleSheet(
@@ -292,6 +301,7 @@ class PolygonDetectionApp(QMainWindow):
         self.console_output.setReadOnly(True)
         self.console_output.setStyleSheet(
             "background-color: black; color: lime; font-family: monospace;"
+            # Hacker style
         )
         right_layout.addWidget(QLabel("Console Output:"))
         right_layout.addWidget(self.console_output)
@@ -301,6 +311,7 @@ class PolygonDetectionApp(QMainWindow):
         self.detection_log.setReadOnly(True)
         self.detection_log.setStyleSheet(
             "background-color: white; color: black; font-family: monospace;"
+            # Slightly less hacker style
         )
         right_layout.addWidget(QLabel("Detection Log:"))
         right_layout.addWidget(self.detection_log)
@@ -323,9 +334,19 @@ class PolygonDetectionApp(QMainWindow):
         controls_layout.addWidget(self.close_btn)
 
     def _setup_signals(self) -> None:
-        """Connect UI signals to their respective slots.
+        """
+        Connect UI signals to their respective slots.
 
-        Establishes connections between UI elements and their handler methods.
+        This method establishes connections between UI elements (buttons) and their
+        corresponding event handler methods, enabling user interaction with the application.
+
+        Connected Signals:
+            - `import_video_btn.clicked` → `import_video()`: Opens a dialog to import a video file.
+            - `import_json_btn.clicked` → `import_json()`: Loads polygon coordinates from a JSON file.
+            - `start_detection_btn.clicked` → `start_detection()`: Begins object detection in the video.
+            - `stop_detection_btn.clicked` → `stop_detection()`: Stops the detection process.
+            - `change_color_btn.clicked` → `change_polygon_color()`: Opens a color picker to change the polygon color.
+            - `close_btn.clicked` → `close()`: Closes the application.
         """
         self.import_video_btn.clicked.connect(self.import_video)
         self.import_json_btn.clicked.connect(self.import_json)
@@ -336,7 +357,8 @@ class PolygonDetectionApp(QMainWindow):
 
     @pyqtSlot()
     def change_polygon_color(self) -> None:
-        """Open color dialog to change polygon color.
+        """
+        Open color dialog to change polygon color.
 
         Allows user to select a new color for the detection zone polygon.
         """
@@ -347,10 +369,27 @@ class PolygonDetectionApp(QMainWindow):
 
     @pyqtSlot()
     def import_video(self) -> None:
-        """Import video file with error handling.
+        """
+        Opens a file dialog to import a video file and initializes video capture.
 
-        Opens a file dialog for video selection and initializes video capture.
-        Handles potential errors during video loading.
+        This method allows the user to select a video file using a file dialog.
+        It then attempts to load the selected video using OpenCV. If a video is
+        already loaded, it releases the previous video capture before opening the new one.
+
+        Error handling is included to manage file selection issues or video loading failures.
+
+        Raises:
+            RuntimeError: If the selected video file cannot be opened.
+
+        UI Elements:
+            - Opens a QFileDialog for selecting a video file.
+            - Displays a QMessageBox in case of an error.
+
+        Supported Formats:
+            - MP4 (*.mp4)
+            - AVI (*.avi)
+            - MOV (*.mov)
+            - MKV (*.mkv)
         """
         try:
             file_path, _ = QFileDialog.getOpenFileName(
@@ -379,10 +418,32 @@ class PolygonDetectionApp(QMainWindow):
 
     @pyqtSlot()
     def import_json(self) -> None:
-        """Import polygon coordinates from JSON with validation.
+        """
+        Opens a file dialog to import polygon coordinates from a JSON file.
 
-        Opens a file dialog for JSON selection and validates polygon data.
-        Handles potential errors during JSON loading and validation.
+        This method allows the user to select a JSON file containing polygon data.
+        It loads and validates the data to ensure it represents a valid polygon
+        structure. The polygon must be a list of at least three points, where
+        each point is represented as a list of two numerical values [x, y].
+
+        If the JSON data is invalid, an error message is displayed, and the
+        polygon data is reset.
+
+        Raises:
+            ValueError: If the JSON data is not a valid polygon format.
+            JSONDecodeError: If the file cannot be parsed as valid JSON.
+            OSError: If there are issues opening the file.
+
+        UI Elements:
+            - Opens a QFileDialog for selecting a JSON file.
+            - Displays a QMessageBox in case of an error.
+
+        JSON Format Example:
+            [
+                [100, 200],
+                [150, 250],
+                [200, 200]
+            ]
         """
         try:
             file_path, _ = QFileDialog.getOpenFileName(
@@ -417,10 +478,18 @@ class PolygonDetectionApp(QMainWindow):
 
     @pyqtSlot()
     def start_detection(self) -> None:
-        """Start detection if prerequisites are met.
+        """
+        Initiates the detection process if all prerequisites are met.
 
-        Verifies that video and polygon data are loaded before starting
-        the detection process.
+        Ensures that a video file has been imported and that polygon
+        coordinates are available before starting detection. If either
+        requirement is missing, a warning message is displayed.
+
+        Once started, the detection process runs at approximately 30 FPS.
+
+        UI Elements:
+            - Displays a QMessageBox warning if prerequisites are not met.
+            - Disables the "Start Detection" button and enables the "Stop Detection" button.
         """
         if not self.video_capture:
             QMessageBox.warning(self, "Warning", "Please import a video first")
@@ -439,9 +508,16 @@ class PolygonDetectionApp(QMainWindow):
 
     @pyqtSlot()
     def stop_detection(self) -> None:
-        """Stop ongoing detection.
+        """
+        Stops the ongoing detection process.
 
-        Stops the detection timer and updates UI accordingly.
+        Halts the detection timer, re-enables the "Start Detection" button,
+        and disables the "Stop Detection" button. This method ensures that
+        processing stops cleanly.
+
+        UI Elements:
+            - Stops the detection timer.
+            - Enables the "Start Detection" button and disables the "Stop Detection" button.
         """
         self.timer.stop()
         self.start_detection_btn.setEnabled(True)
@@ -450,10 +526,24 @@ class PolygonDetectionApp(QMainWindow):
 
     @pyqtSlot()
     def process_frame(self) -> None:
-        """Process video frame with error handling.
+        """
+        Processes a single video frame and updates detection results.
 
-        Reads and processes a single video frame, updating detection results
-        and UI elements. Handles end of video and processing errors.
+        This method:
+            - Reads a frame from the video source.
+            - Passes the frame to the YOLO-based processor for detection.
+            - Counts detected people and checks if they are within the polygon zone.
+            - Updates the UI with the processed frame and detection statistics.
+
+        Handles the end of the video by stopping detection when no more frames
+        are available.
+
+        Raises:
+            Exception: If frame processing encounters an error.
+
+        UI Elements:
+            - Calls `_update_ui()` to update the displayed frame and detection results.
+            - Prints error messages in case of processing failure.
         """
         try:
             if not self.video_capture or not self.video_capture.isOpened():
@@ -489,13 +579,27 @@ class PolygonDetectionApp(QMainWindow):
     def _update_ui(
         self, frame: np.ndarray, count: int, inference_time: float, total_count: int
     ) -> None:
-        """Update UI elements with detection results.
+        """
+        Updates UI elements with detection results and visual feedback.
+
+        This method:
+            - Updates the displayed frame in the UI.
+            - Adjusts the status label color based on the detected count.
+            - Logs detection results for debugging and tracking.
 
         Args:
-            frame: Processed video frame with visualizations.
-            count: Number of people detected in the zone.
-            inference_time: YOLO inference time in milliseconds.
-            total_count: Total number of people detected in frame.
+            frame (np.ndarray): The processed video frame with visualizations.
+            count (int): Number of people detected within the defined zone.
+            inference_time (float): YOLO model inference time in milliseconds.
+            total_count (int): Total number of people detected in the frame.
+
+        UI Updates:
+            - Changes the status label color to red if the detected count exceeds
+              the defined threshold for a sustained duration.
+            - Displays the number of people in the zone and the total count.
+            - Logs frame detection details including count and inference time.
+            - Updates the displayed video frame using QImage and QPixmap.
+
         """
         # Update count and warning status
         threshold = self.threshold_spinbox.value()
@@ -535,12 +639,19 @@ class PolygonDetectionApp(QMainWindow):
         )
 
     def close_event(self, event) -> None:
-        """Handle application close event.
+        """
+        Handles application close event by releasing resources.
 
-        Performs cleanup of resources before closing the application.
+        Ensures that timers and video capture resources are properly stopped
+        before the application exits.
 
         Args:
-            event: Close event object.
+            event: The close event object triggered when the application is closing.
+
+        Cleanup Actions:
+            - Stops the detection timer.
+            - Releases the video capture object if it is in use.
+            - Calls the superclass close event to ensure proper shutdown.
         """
         self.timer.stop()
         if self.video_capture:
