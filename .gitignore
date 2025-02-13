@@ -1,4 +1,6 @@
 *.pt
+*.pdf
+*.mt
 *.png
 *.jpg
 *.avi
