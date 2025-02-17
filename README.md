@@ -24,6 +24,9 @@ applications, which utilises the Qt5 framework to ensure that this application
 can be packaged and run n any application, although they are developed and
 tested only on Linux thus far.
 
+The applications are themed according to Catppuccin Macchiato using Qt's css
+functionalities.
+
 ## Overview of the applications
 
 In `/ModelsYolo/python/apps/`, there are 8 python files, 7 of which (minus `debug.py`) should run a GUI.
@@ -54,4 +57,5 @@ break in under any edge case.
 - Debug and ensure that the programs work in more edge cases
 - Eventually test and compile code into executables for easier deployment
 - Test out other viable models (RT-DETR)
-- Solve other problems that face banks.
+- Solve other problems that banks face.
+- Modularise code for easier debugging and feature adding

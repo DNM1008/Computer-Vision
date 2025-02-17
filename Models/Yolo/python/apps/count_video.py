@@ -97,7 +97,7 @@ class VideoProcessor:
         self.confidence_threshold = 0.7
         self.frame_skip = 1  # Process every nth frame
         self.frame_count = 0
-        self.polygon_color = (255, 153, 153)  # Default green color for polygon
+        self.polygon_color = (255, 153, 153)  # Default light red color for polygon
         self.polygon_thickness = 2
 
     def draw_polygon(
@@ -226,6 +226,7 @@ class PolygonDetectionApp(QMainWindow):
 
         self._setup_ui()
         self._setup_signals()
+        self.apply_theme()
 
     def _setup_ui(self) -> None:
         """
@@ -300,7 +301,7 @@ class PolygonDetectionApp(QMainWindow):
         self.console_output = QTextEdit()
         self.console_output.setReadOnly(True)
         self.console_output.setStyleSheet(
-            "background-color: black; color: lime; font-family: monospace;"
+            "background-color: #181926; color: #a6da95; font-family: monospace;"
             # Hacker style
         )
         right_layout.addWidget(QLabel("Console Output:"))
@@ -310,8 +311,8 @@ class PolygonDetectionApp(QMainWindow):
         self.detection_log = QTextEdit()
         self.detection_log.setReadOnly(True)
         self.detection_log.setStyleSheet(
-            "background-color: white; color: black; font-family: monospace;"
-            # Slightly less hacker style
+            "background-color: #181926; color: #a6da95; font-family: monospace;"
+            # Hacker style
         )
         right_layout.addWidget(QLabel("Detection Log:"))
         right_layout.addWidget(self.detection_log)
@@ -332,6 +333,71 @@ class PolygonDetectionApp(QMainWindow):
             "background-color: #ed8796; color: #181926; font-weight: bold;"
         )
         controls_layout.addWidget(self.close_btn)
+
+    def apply_theme(self):
+        """Apply Catppuccin Macchiato color scheme."""
+        self.setStyleSheet(
+            """
+            QWidget {
+                background-color: #24273A;
+                color: #CAD3F5;
+                font-size: 25px;
+                font-family: "Segoe UI", "Arial", sans-serif;
+            }
+    
+            QPushButton {
+                background-color: #363A4F;
+                color: #CAD3F5;
+                border-radius: 6px;
+                padding: 6px;
+                border: 1px solid #494D64;
+            }
+            QPushButton:hover {
+                background-color: #494D64;
+            }
+            QPushButton:pressed {
+                background-color: #5B6078;
+            }
+    
+            QLabel {
+                color: #CAD3F5;
+                font-weight: bold;
+            }
+    
+            QLineEdit, QTextEdit {
+                background-color: #1E2030;
+                border: 1px solid #494D64;
+                border-radius: 4px;
+                padding: 4px;
+                color: #CAD3F5;
+            }
+    
+            QSpinBox, QComboBox {
+                background-color: #1E2030;
+                border: 1px solid #494D64;
+                color: #CAD3F5;
+            }
+    
+            QSlider::groove:horizontal {
+                background: #494D64;
+                height: 6px;
+                border-radius: 3px;
+            }
+    
+            QSlider::handle:horizontal {
+                background: #8AADF4;
+                width: 14px;
+                height: 14px;
+                margin: -5px 0;
+                border-radius: 7px;
+            }
+    
+            QMessageBox {
+                background-color: #24273A;
+                color: #CAD3F5;
+            }
+        """
+        )
 
     def _setup_signals(self) -> None:
         """

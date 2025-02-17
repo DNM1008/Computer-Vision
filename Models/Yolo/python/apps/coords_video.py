@@ -156,6 +156,74 @@ class VideoPointSelector(QWidget):
         # Viewing mode checkbox
         self.edit_mode = False
 
+        # Apply Catppuccin Macchiato Theme
+        self.apply_theme()
+
+    def apply_theme(self):
+        """Apply Catppuccin Macchiato color scheme."""
+        self.setStyleSheet(
+            """
+            QWidget {
+                background-color: #24273A;
+                color: #CAD3F5;
+                font-size: 25px;
+                font-family: "Segoe UI", "Arial", sans-serif;
+            }
+    
+            QPushButton {
+                background-color: #363A4F;
+                color: #CAD3F5;
+                border-radius: 6px;
+                padding: 6px;
+                border: 1px solid #494D64;
+            }
+            QPushButton:hover {
+                background-color: #494D64;
+            }
+            QPushButton:pressed {
+                background-color: #5B6078;
+            }
+    
+            QLabel {
+                color: #CAD3F5;
+                font-weight: bold;
+            }
+    
+            QLineEdit, QTextEdit {
+                background-color: #1E2030;
+                border: 1px solid #494D64;
+                border-radius: 4px;
+                padding: 4px;
+                color: #CAD3F5;
+            }
+    
+            QSpinBox, QComboBox {
+                background-color: #1E2030;
+                border: 1px solid #494D64;
+                color: #CAD3F5;
+            }
+    
+            QSlider::groove:horizontal {
+                background: #494D64;
+                height: 6px;
+                border-radius: 3px;
+            }
+    
+            QSlider::handle:horizontal {
+                background: #8AADF4;
+                width: 14px;
+                height: 14px;
+                margin: -5px 0;
+                border-radius: 7px;
+            }
+    
+            QMessageBox {
+                background-color: #24273A;
+                color: #CAD3F5;
+            }
+        """
+        )
+
     def toggle_edit_mode(self, state):
         """
         Toggle Edit mode.
