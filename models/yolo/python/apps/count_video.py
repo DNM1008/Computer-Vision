@@ -1,6 +1,7 @@
 import json
 import sys
 import time
+import torch
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -93,7 +94,8 @@ class VideoProcessor:
         Args:
             model_path: Path to the YOLO model weights file.
         """
-        self.model = YOLO(model_path)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model = YOLO(model_path).to(self.device)
         self.confidence_threshold = 0.7
         self.frame_skip = 1  # Process every nth frame
         self.frame_count = 0
