@@ -29,7 +29,7 @@ functionalities.
 
 ## Overview of the applications
 
-In `/ModelsYolo/python/apps/`, there are 8 python files, 7 of which (minus `debug.py`) should run a GUI.
+In `/ModelsYolo/python/test/`, there are 8 python files, 7 of which (minus `debug.py`) should run a GUI.
 
 - `area_define.py` is used for testing, it should allow the user to import an
   image file and a coordinate file and graph those coordinates on the image,
@@ -58,4 +58,5 @@ break in under any edge case.
 - Eventually test and compile code into executables for easier deployment
 - Test out other viable models (RT-DETR)
 - Solve other problems that banks face.
+  - To make sure that these programs can do real time tracking, develop the ability to take in network webcam instead of static files
 - Modularise code for easier debugging and feature adding
