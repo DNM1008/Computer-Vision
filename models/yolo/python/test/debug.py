@@ -11,20 +11,231 @@ from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import (
     QApplication,
-    QFileDialog,
-    QLabel,
-    QMainWindow,
-    QPushButton,
-    QVBoxLayout,
-    QHBoxLayout,
-    QWidget,
-    QTextEdit,
-    QMessageBox,
-    QSpinBox,
     QColorDialog,
+    QComboBox,
+    QFileDialog,
+    QHBoxLayout,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QSpinBox,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 from shapely.geometry import Point, Polygon
 from ultralytics import YOLO
+
+
+class ConnectionDialog(QDialog):
+    """
+    Dialog that prompts the user to connect to the ip camera
+
+    Attributes:
+        ip_input: IP Address of the camera
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Connect to IP Camera")
+
+        layout = QFormLayout()
+
+        self.ip_input = QLineEdit()
+        self.ip_input.setPlaceholderText("e.g., 192.168.1.100")
+        layout.addRow("IP Address:", self.ip_input)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+        self.setLayout(layout)
+        self.apply_theme()
+
+    def get_ip(self):
+        return self.ip_input.text()
+
+    def apply_theme(self):
+        """Apply Catppuccin Macchiato color scheme."""
+        self.setStyleSheet(
+            """
+            QWidget {
+                background-color: #24273A;
+                color: #CAD3F5;
+                font-size: 25px;
+                font-family: "Segoe UI", "Arial", sans-serif;
+            }
+    
+            QPushButton {
+                background-color: #363A4F;
+                color: #CAD3F5;
+                border-radius: 6px;
+                padding: 6px;
+                border: 1px solid #494D64;
+            }
+            QPushButton:hover {
+                background-color: #494D64;
+            }
+            QPushButton:pressed {
+                background-color: #5B6078;
+            }
+    
+            QLabel {
+                color: #CAD3F5;
+                font-weight: bold;
+            }
+    
+            QLineEdit, QTextEdit {
+                background-color: #1E2030;
+                border: 1px solid #494D64;
+                border-radius: 4px;
+                padding: 4px;
+                color: #CAD3F5;
+            }
+    
+            QSpinBox, QComboBox {
+                background-color: #1E2030;
+                border: 1px solid #494D64;
+                color: #CAD3F5;
+            }
+    
+            QSlider::groove:horizontal {
+                background: #494D64;
+                height: 6px;
+                border-radius: 3px;
+            }
+    
+            QSlider::handle:horizontal {
+                background: #8AADF4;
+                width: 14px;
+                height: 14px;
+                margin: -5px 0;
+                border-radius: 7px;
+            }
+    
+            QMessageBox {
+                background-color: #24273A;
+                color: #CAD3F5;
+            }
+        """
+        )
+
+
+class CredentialsDialog(QDialog):
+    """
+    Dialog where the user can enter their username, their password, as well as chose their profile
+
+    Attributes:
+        username_input: username
+        password_input: password, appears as '***' to hide the password
+        profile_combo: the video profile. Profile 1 has the highest quality, 3 has the lowest.
+        Might need to look in to if this is exclusive to Hanwha cameras
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Enter Credentials")
+
+        layout = QFormLayout()
+
+        self.username_input = QLineEdit()
+        layout.addRow("Username:", self.username_input)
+
+        self.password_input = QLineEdit()
+        self.password_input.setEchoMode(
+            QLineEdit.Password
+        )  # Replace password chars with '*'
+        layout.addRow("Password:", self.password_input)
+
+        self.profile_combo = QComboBox()
+        self.profile_combo.addItems(["profile1", "profile2", "profile3"])
+        layout.addRow("Profile:", self.profile_combo)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+        self.setLayout(layout)
+        self.apply_theme()
+
+    def get_credentials(self):
+        return (
+            self.username_input.text(),
+            self.password_input.text(),
+            self.profile_combo.currentText(),
+        )
+
+    def apply_theme(self):
+        """Apply Catppuccin Macchiato color scheme."""
+        self.setStyleSheet(
+            """
+            QWidget {
+                background-color: #24273A;
+                color: #CAD3F5;
+                font-size: 25px;
+                font-family: "Segoe UI", "Arial", sans-serif;
+            }
+    
+            QPushButton {
+                background-color: #363A4F;
+                color: #CAD3F5;
+                border-radius: 6px;
+                padding: 6px;
+                border: 1px solid #494D64;
+            }
+            QPushButton:hover {
+                background-color: #494D64;
+            }
+            QPushButton:pressed {
+                background-color: #5B6078;
+            }
+    
+            QLabel {
+                color: #CAD3F5;
+                font-weight: bold;
+            }
+    
+            QLineEdit, QTextEdit {
+                background-color: #1E2030;
+                border: 1px solid #494D64;
+                border-radius: 4px;
+                padding: 4px;
+                color: #CAD3F5;
+            }
+    
+            QSpinBox, QComboBox {
+                background-color: #1E2030;
+                border: 1px solid #494D64;
+                color: #CAD3F5;
+            }
+    
+            QSlider::groove:horizontal {
+                background: #494D64;
+                height: 6px;
+                border-radius: 3px;
+            }
+    
+            QSlider::handle:horizontal {
+                background: #8AADF4;
+                width: 14px;
+                height: 14px;
+                margin: -5px 0;
+                border-radius: 7px;
+            }
+    
+            QMessageBox {
+                background-color: #24273A;
+                color: #CAD3F5;
+            }
+        """
+        )
 
 
 class StreamRedirect:
@@ -438,49 +649,59 @@ class PolygonDetectionApp(QMainWindow):
     @pyqtSlot()
     def import_video(self) -> None:
         """
-        Opens a file dialog to import a video file and initializes video capture.
+        Open a (series of) of dialogs to import a video stream into the program
 
-        This method allows the user to select a video file using a file dialog.
-        It then attempts to load the selected video using OpenCV. If a video is
-        already loaded, it releases the previous video capture before opening the new one.
+        This method allows the user to enter an ip Address, then their username
+        and password. The information would then be used to create the rtsp url
+        rtsp://{username}:{password}@{ip_address}:554/{profile}/media.smp. The
+        url is then used to load the live feed.
 
-        Error handling is included to manage file selection issues or video loading failures.
+        It also prints the outputs to the console output
 
         Raises:
-            RuntimeError: If the selected video file cannot be opened.
+            RuntimeError: If the video stream fails to open (e.g., incorrect credentials,
+                          invalid IP address, or connection issues).
+            Exception: For any other unexpected errors during the process.
 
-        UI Elements:
-            - Opens a QFileDialog for selecting a video file.
-            - Displays a QMessageBox in case of an error.
+        Side Effects:
+            - Opens input dialogs for IP address and credentials.
+            - Initializes or reinitializes `self.video_capture` with the new video stream.
+            - Sets `self.video_path` to the constructed RTSP URL.
+            - Displays error messages via `QMessageBox` in case of failures.
+            - Prints connection info to the console.
 
-        Supported Formats:
-            - MP4 (*.mp4)
-            - AVI (*.avi)
-            - MOV (*.mov)
-            - MKV (*.mkv)
+        Returns:
+        None
         """
         try:
-            file_path, _ = QFileDialog.getOpenFileName(
-                self,
-                "Open Video File",
-                "",
-                "Videos (*.mp4 *.avi *.mov *.mkv);;All Files (*)",
+            # IP Address
+            ip_dialog = ConnectionDialog()
+            if ip_dialog.exec_() != QDialog.Accepted:
+                return
+            ip_address = ip_dialog.get_ip()
+
+            # Credentials
+            cred_dialog = CredentialsDialog()
+            if cred_dialog.exec_() != QDialog.Accepted:
+                return
+            username, password, profile = cred_dialog.get_credentials()
+
+            # Construct RTSP URL
+            rtsp_url = (
+                f"rtsp://{username}:{password}@{ip_address}:554/{profile}/media.smp"
             )
 
-            if not file_path:
-                return
-
+            # Release previous video capture if exists
             if self.video_capture:
                 self.video_capture.release()
 
-            self.video_capture = cv2.VideoCapture(
-                "rtsp://admin:Vcb!2025@192.168.1.100:554/profile2/media.smp"
-            )
+            # Initialize video capture
+            self.video_capture = cv2.VideoCapture(rtsp_url)
             if not self.video_capture.isOpened():
-                raise RuntimeError("Failed to open video file")
+                raise RuntimeError("Failed to open video stream")
 
-            self.video_path = file_path
-            print(f"[INFO] Loaded video: {file_path}")
+            self.video_path = rtsp_url
+            print(f"[INFO] Loaded video from: {rtsp_url}")
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load video: {str(e)}")

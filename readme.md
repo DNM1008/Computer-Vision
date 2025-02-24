@@ -29,7 +29,8 @@ functionalities.
 
 ## Overview of the applications
 
-In `/ModelsYolo/python/test/`, there are 8 python files, 7 of which (minus `debug.py`) should run a GUI.
+In `/ModelsYolo/python/test/`, I mainly work on them and copy the final results
+to the app folder.
 
 - `area_define.py` is used for testing, it should allow the user to import an
   image file and a coordinate file and graph those coordinates on the image,
@@ -46,6 +47,12 @@ In `/ModelsYolo/python/test/`, there are 8 python files, 7 of which (minus `debu
 - `crop.py` crops the image/video to the smallest frame containing the every set
   of coordinates
 - `debug.py` is used for testing, ignore this.
+
+In `/ModelsYolo/python/app/` there should be the final GUI apps.
+
+- `count_live.py` takes `count_video.py` and modifies it so that it takes a live
+  feed from an IP security camera instead of a static file.
+- Working on a coordinate app as well.
 
 ## Current state
 
