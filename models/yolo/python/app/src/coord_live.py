@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 
 import cv2
@@ -69,69 +70,22 @@ class ConnectionDialog(QDialog):
         return self.ip_input.text()
 
     def apply_theme(self):
-        """Apply Catppuccin Macchiato color scheme."""
-        self.setStyleSheet(
-            """
-            QWidget {
-                background-color: #24273A;
-                color: #CAD3F5;
-                font-size: 25px;
-                font-family: "Segoe UI", "Arial", sans-serif;
-            }
-    
-            QPushButton {
-                background-color: #363A4F;
-                color: #CAD3F5;
-                border-radius: 6px;
-                padding: 6px;
-                border: 1px solid #494D64;
-            }
-            QPushButton:hover {
-                background-color: #494D64;
-            }
-            QPushButton:pressed {
-                background-color: #5B6078;
-            }
-    
-            QLabel {
-                color: #CAD3F5;
-                font-weight: bold;
-            }
-    
-            QLineEdit, QTextEdit {
-                background-color: #1E2030;
-                border: 1px solid #494D64;
-                border-radius: 4px;
-                padding: 4px;
-                color: #CAD3F5;
-            }
-    
-            QSpinBox, QComboBox {
-                background-color: #1E2030;
-                border: 1px solid #494D64;
-                color: #CAD3F5;
-            }
-    
-            QSlider::groove:horizontal {
-                background: #494D64;
-                height: 6px;
-                border-radius: 3px;
-            }
-    
-            QSlider::handle:horizontal {
-                background: #8AADF4;
-                width: 14px;
-                height: 14px;
-                margin: -5px 0;
-                border-radius: 7px;
-            }
-    
-            QMessageBox {
-                background-color: #24273A;
-                color: #CAD3F5;
-            }
         """
+        Apply Catppuccin Macchiato color scheme.
+
+        This method looks at ../conf/catpuccin.qss and apply the theme
+        """
+
+        qss_path = os.path.join(
+            os.path.dirname(__file__), "..", "conf", "catppuccin_macchiato.qss"
         )
+        qss_path = os.path.abspath(qss_path)
+        try:
+            with open(qss_path, "r") as file:
+                self.setStyleSheet(file.read())
+                print("Stylesheet applied successfully.")
+        except FileNotFoundError:
+            print(f"Stylesheet not found at {qss_path}")
 
 
 class CredentialsDialog(QDialog):
@@ -171,69 +125,22 @@ class CredentialsDialog(QDialog):
         )
 
     def apply_theme(self):
-        """Apply Catppuccin Macchiato color scheme."""
-        self.setStyleSheet(
-            """
-            QWidget {
-                background-color: #24273A;
-                color: #CAD3F5;
-                font-size: 25px;
-                font-family: "Segoe UI", "Arial", sans-serif;
-            }
-    
-            QPushButton {
-                background-color: #363A4F;
-                color: #CAD3F5;
-                border-radius: 6px;
-                padding: 6px;
-                border: 1px solid #494D64;
-            }
-            QPushButton:hover {
-                background-color: #494D64;
-            }
-            QPushButton:pressed {
-                background-color: #5B6078;
-            }
-    
-            QLabel {
-                color: #CAD3F5;
-                font-weight: bold;
-            }
-    
-            QLineEdit, QTextEdit {
-                background-color: #1E2030;
-                border: 1px solid #494D64;
-                border-radius: 4px;
-                padding: 4px;
-                color: #CAD3F5;
-            }
-    
-            QSpinBox, QComboBox {
-                background-color: #1E2030;
-                border: 1px solid #494D64;
-                color: #CAD3F5;
-            }
-    
-            QSlider::groove:horizontal {
-                background: #494D64;
-                height: 6px;
-                border-radius: 3px;
-            }
-    
-            QSlider::handle:horizontal {
-                background: #8AADF4;
-                width: 14px;
-                height: 14px;
-                margin: -5px 0;
-                border-radius: 7px;
-            }
-    
-            QMessageBox {
-                background-color: #24273A;
-                color: #CAD3F5;
-            }
         """
+        Apply Catppuccin Macchiato color scheme.
+
+        This method looks at ../conf/catpuccin.qss and apply the theme
+        """
+
+        qss_path = os.path.join(
+            os.path.dirname(__file__), "..", "conf", "catppuccin_macchiato.qss"
         )
+        qss_path = os.path.abspath(qss_path)
+        try:
+            with open(qss_path, "r") as file:
+                self.setStyleSheet(file.read())
+                print("Stylesheet applied successfully.")
+        except FileNotFoundError:
+            print(f"Stylesheet not found at {qss_path}")
 
 
 class VideoPointSelector(QWidget):
@@ -358,69 +265,22 @@ class VideoPointSelector(QWidget):
         self.apply_theme()
 
     def apply_theme(self):
-        """Apply Catppuccin Macchiato color scheme."""
-        self.setStyleSheet(
-            """
-            QWidget {
-                background-color: #24273A;
-                color: #CAD3F5;
-                font-size: 25px;
-                font-family: "Segoe UI", "Arial", sans-serif;
-            }
-    
-            QPushButton {
-                background-color: #363A4F;
-                color: #CAD3F5;
-                border-radius: 6px;
-                padding: 6px;
-                border: 1px solid #494D64;
-            }
-            QPushButton:hover {
-                background-color: #494D64;
-            }
-            QPushButton:pressed {
-                background-color: #5B6078;
-            }
-    
-            QLabel {
-                color: #CAD3F5;
-                font-weight: bold;
-            }
-    
-            QLineEdit, QTextEdit {
-                background-color: #1E2030;
-                border: 1px solid #494D64;
-                border-radius: 4px;
-                padding: 4px;
-                color: #CAD3F5;
-            }
-    
-            QSpinBox, QComboBox {
-                background-color: #1E2030;
-                border: 1px solid #494D64;
-                color: #CAD3F5;
-            }
-    
-            QSlider::groove:horizontal {
-                background: #494D64;
-                height: 6px;
-                border-radius: 3px;
-            }
-    
-            QSlider::handle:horizontal {
-                background: #8AADF4;
-                width: 14px;
-                height: 14px;
-                margin: -5px 0;
-                border-radius: 7px;
-            }
-    
-            QMessageBox {
-                background-color: #24273A;
-                color: #CAD3F5;
-            }
         """
+        Apply Catppuccin Macchiato color scheme.
+
+        This method looks at ../conf/catpuccin.qss and apply the theme
+        """
+
+        qss_path = os.path.join(
+            os.path.dirname(__file__), "..", "conf", "catppuccin_macchiato.qss"
         )
+        qss_path = os.path.abspath(qss_path)
+        try:
+            with open(qss_path, "r") as file:
+                self.setStyleSheet(file.read())
+                print("Stylesheet applied successfully.")
+        except FileNotFoundError:
+            print(f"Stylesheet not found at {qss_path}")
 
     def toggle_edit_mode(self, state):
         """
@@ -520,9 +380,9 @@ class VideoPointSelector(QWidget):
                 self.draw_polygon([QPointF(x, y) for x, y in self.points])
 
     def set_video_position(self, position):
-        if self.video_capture:
+        if self.video:
             self.timer.stop()  # Prevent frame updates while seeking
-            self.video_capture.set(cv2.CAP_PROP_POS_FRAMES, position)
+            self.video.set(cv2.CAP_PROP_POS_FRAMES, position)
 
             # Only update the frame if it's different from the current frame
             if self.current_frame != position:
@@ -691,8 +551,8 @@ class VideoPointSelector(QWidget):
                 json.dump(self.points, f, indent=4)
 
     def close_application(self):
-        if self.video_capture:
-            self.video_capture.release()
+        if self.video:
+            self.video.release()
         self.close()
 
     def wheelEvent(self, event):

@@ -520,9 +520,9 @@ class VideoPointSelector(QWidget):
                 self.draw_polygon([QPointF(x, y) for x, y in self.points])
 
     def set_video_position(self, position):
-        if self.video_capture:
+        if self.video:
             self.timer.stop()  # Prevent frame updates while seeking
-            self.video_capture.set(cv2.CAP_PROP_POS_FRAMES, position)
+            self.video.set(cv2.CAP_PROP_POS_FRAMES, position)
 
             # Only update the frame if it's different from the current frame
             if self.current_frame != position:
@@ -691,8 +691,8 @@ class VideoPointSelector(QWidget):
                 json.dump(self.points, f, indent=4)
 
     def close_application(self):
-        if self.video_capture:
-            self.video_capture.release()
+        if self.video:
+            self.video.release()
         self.close()
 
     def wheelEvent(self, event):

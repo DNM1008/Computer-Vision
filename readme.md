@@ -48,8 +48,17 @@ to the app folder.
   of coordinates
 - `debug.py` is used for testing, ignore this.
 
+In `/ModelsYolo/python/dev/` there should be the GUI apps, although they are all
+in 1 file so not ideal. Probably good to have them around though.
+
 In `/ModelsYolo/python/app/` there should be the final GUI apps.
 
+- The folder is broken up to `src`, `data` and `conf`. What goes where should be
+  self-explanatory.
+  - Yolov8l.pt and the theme are modular from the main apps, so a little bit
+    more modular
+  - Could look into modularise the python applications, though would need to
+    wait until the final specs.
 - `count_live.py` takes `count_video.py` and modifies it so that it takes a live
   feed from an IP security camera instead of a static file.
 - Working on a coordinate app as well.
