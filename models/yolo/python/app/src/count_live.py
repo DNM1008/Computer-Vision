@@ -108,7 +108,7 @@ class CredentialsDialog(QDialog):
         layout.addRow("Password:", self.password_input)
 
         self.profile_combo = QComboBox()
-        self.profile_combo.addItems(["profile1", "profile2", "profile3"])
+        self.profile_combo.addItems(["profile3", "profile2", "profile1"])
         layout.addRow("Profile:", self.profile_combo)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -259,6 +259,10 @@ class VideoProcessor:
         """
         Process a single frame with YOLO detection.
 
+        Each nth frame is put through the model, where it detects and classifies
+        objects. If an object fits the classifcation and has its centre within
+        the bounderies of the polygon, they're considered "in the zone"
+
         Args:
             frame: Input video frame.
             polygon_points: List of [x, y] coordinates defining the detection zone.
@@ -295,13 +299,29 @@ class VideoProcessor:
                     center = (int((x1 + x2) / 2), int((y1 + y2) / 2))
                     centers.append(center)
 
-                    # Draw bounding box
+                    # Draw bounding box and confidence
                     cv2.rectangle(
-                        frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2
+                        frame,
+                        (int(x1), int(y1)),
+                        (int(x2), int(y2)),
+                        (166, 218, 149),
+                        2,
+                    )
+
+                    confidence_text = f"{conf:.2f}"
+                    cv2.putText(
+                        frame,
+                        confidence_text,
+                        (int(x1), int(y1) - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5,
+                        (166, 218, 149),
+                        2,
+                        cv2.LINE_AA,
                     )
 
                     # Draw center point
-                    cv2.circle(frame, center, 4, (255, 0, 0), -1)
+                    cv2.circle(frame, center, 4, (138, 173, 244), -1)
 
             # Store last detection results
             self._last_results = (centers, inference_time, person_count)
@@ -334,7 +354,7 @@ class PolygonDetectionApp(QMainWindow):
         """Initialize the application window and setup UI components."""
         super().__init__()
         self.setWindowTitle("YOLOv8 Polygon Detection")
-        self.setGeometry(1000, 100, 1600, 900)
+        self.setGeometry(1000, 100, 3200, 1800)
 
         # Initialize state
         self.video_path: Optional[str] = None
@@ -366,7 +386,7 @@ class PolygonDetectionApp(QMainWindow):
 
         # Video display
         self.video_label = QLabel()
-        self.video_label.setMinimumSize(800, 600)
+        self.video_label.setMinimumSize(1920, 1080)
         left_layout.addWidget(self.video_label)
 
         # Controls
