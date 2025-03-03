@@ -73,7 +73,7 @@ class ConnectionDialog(QDialog):
         """
         Apply Catppuccin Macchiato color scheme.
 
-        This method looks at ../conf/catpuccin.qss and apply the theme
+        This method looks at ../conf/catppuccin_macchiato.qss and apply the theme
         """
 
         qss_path = os.path.join(
@@ -128,7 +128,7 @@ class CredentialsDialog(QDialog):
         """
         Apply Catppuccin Macchiato color scheme.
 
-        This method looks at ../conf/catpuccin.qss and apply the theme
+        This method looks at ../conf/catppuccin_macchiato.qss and apply the theme
         """
 
         qss_path = os.path.join(
@@ -268,7 +268,7 @@ class VideoPointSelector(QWidget):
         """
         Apply Catppuccin Macchiato color scheme.
 
-        This method looks at ../conf/catpuccin.qss and apply the theme
+        This method looks at ../conf/catppuccin.qss and apply the theme
         """
 
         qss_path = os.path.join(
