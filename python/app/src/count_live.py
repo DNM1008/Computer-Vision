@@ -449,7 +449,9 @@ class PolygonDetectionApp(QMainWindow):
         config_layout.addWidget(self.person_count_threshold_spinbox)
 
         # Confidence threshhold
-        self.confidence_threshold_spinbox = QDoubleSpinBox()
+        self.confidence_threshold_spinbox = (
+            QDoubleSpinBox()
+        )  # Spin box that accepts float values
         self.confidence_threshold_spinbox.setRange(0, 1.0)
         self.confidence_threshold_spinbox.setValue(0.7)
         config_layout.addWidget(QLabel("Confidence Threshold:"))
