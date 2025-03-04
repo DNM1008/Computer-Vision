@@ -18,6 +18,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QDialog,
     QDialogButtonBox,
+    QDoubleSpinBox,
     QFormLayout,
     QLabel,
     QLineEdit,
@@ -60,6 +61,12 @@ class ConnectionDialog(QDialog):
         self.apply_theme()
 
     def get_ip(self):
+        """
+        Gets the ip address of the video source
+
+        Returns:
+            str: the ip address
+        """
         return self.ip_input.text()
 
     def apply_theme(self):
@@ -219,6 +226,22 @@ class VideoProcessor:
         self.frame_count = 0
         self.polygon_color = (255, 153, 153)  # Default light red color for polygon
         self.polygon_thickness = 2
+
+    def set_confidence(self, confidence_threshold):
+        """
+        This function sets the confidence_threshold in which the model would
+        use to determine a n object. In layment's term, this is how confident
+        the model is that an object is of which class (in this case humans).
+
+        Confidence should be from 0 to 1, with 0 meaning no confidence and 1
+        meaning absolute confidence.
+
+        For example, the model is 70% sure that this object is a person.
+
+        Args:
+            confidence_threshold (float): the confidence_threshold
+        """
+        self.confidence_threshold = confidence_threshold
 
     def draw_polygon(
         self, frame: np.ndarray, polygon_points: List[List[int]]
@@ -417,11 +440,21 @@ class PolygonDetectionApp(QMainWindow):
 
         # Configuration
         config_layout = QHBoxLayout()
-        self.threshold_spinbox = QSpinBox()
-        self.threshold_spinbox.setRange(1, 10)
-        self.threshold_spinbox.setValue(3)
+
+        # Person count threshold
+        self.person_count_threshold_spinbox = QSpinBox()
+        self.person_count_threshold_spinbox.setRange(1, 10)
+        self.person_count_threshold_spinbox.setValue(3)
         config_layout.addWidget(QLabel("Person Threshold:"))
-        config_layout.addWidget(self.threshold_spinbox)
+        config_layout.addWidget(self.person_count_threshold_spinbox)
+
+        # Confidence threshhold
+        self.confidence_threshold_spinbox = QDoubleSpinBox()
+        self.confidence_threshold_spinbox.setRange(0, 1.0)
+        self.confidence_threshold_spinbox.setValue(0.7)
+        config_layout.addWidget(QLabel("Confidence Threshold:"))
+        config_layout.addWidget(self.confidence_threshold_spinbox)
+
         left_layout.addLayout(config_layout)
 
         # Status
@@ -757,6 +790,7 @@ class PolygonDetectionApp(QMainWindow):
             - Updates the displayed frame in the UI.
             - Adjusts the status label color based on the detected count.
             - Logs detection results for debugging and tracking.
+            - The user can update the person count and confidence_threshold here
 
         Args:
             frame (np.ndarray): The processed video frame with visualizations.
@@ -776,8 +810,13 @@ class PolygonDetectionApp(QMainWindow):
 
         """
         # Update count and warning status
-        threshold = self.threshold_spinbox.value()
-        if count > threshold:
+        person_count_threshold = self.person_count_threshold_spinbox.value()
+
+        # Update confidence_threshold
+        confidence_threshold = self.confidence_threshold_spinbox.value()
+        self.processor.set_confidence(confidence_threshold)
+
+        if count > person_count_threshold:
             self.high_count_frames += 1
             if self.high_count_frames > self.max_high_count_frames:
                 self.status_label.setStyleSheet(

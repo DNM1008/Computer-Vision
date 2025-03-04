@@ -29,7 +29,7 @@ functionalities.
 
 ## Overview of the applications
 
-In `/ModelsYolo/python/test/`, I mainly work on them and copy the final results
+In `/python/test/`, I mainly work on them and copy the final results
 to the app folder.
 
 - `area_define.py` is used for testing, it should allow the user to import an
@@ -48,7 +48,7 @@ to the app folder.
   of coordinates
 - `debug.py` is used for testing, ignore this.
 
-In `/ModelsYolo/python/dev/` there should be the GUI apps, although they are all
+In `/python/dev/` there should be the GUI apps, although they are all
 in 1 file so not ideal. Probably good to have them around though.
 
 In `/ModelsYolo/python/app/` there should be the final GUI apps.
