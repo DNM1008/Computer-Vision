@@ -3,11 +3,13 @@ import os
 import sys
 import time
 import torch
-from pathlib import Path
 from typing import List, Optional, Tuple
 
 import cv2
 import numpy as np
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import (
@@ -127,6 +129,19 @@ class CredentialsDialog(QDialog):
         self.apply_theme()
 
     def get_credentials(self):
+        """
+        Collects the credentials to login the camera, this is put together to
+        form a string that is the url that the program will use to to connect
+        to the camera
+
+        Returns:
+            username_input (str): The username, typically 'admin'
+            password_input (str): The password, visually concealed
+            profile_combo (str): A choice between profile 1, 2, or 3, gradually
+                                decreasing in quality but increasing in
+                                smoothnees
+
+        """
         return (
             self.username_input.text(),
             self.password_input.text(),
@@ -549,6 +564,31 @@ class PolygonDetectionApp(QMainWindow):
         self.change_color_btn.clicked.connect(self.change_polygon_color)
         self.close_btn.clicked.connect(self.close)
 
+    def send_email(self, subject, body):
+        """
+        Sends an email notifying the admin if there are more people in the area.
+
+        As of now sends email from gmail to outlook.
+
+        Args:
+            subject (str): subject of the email, this should be in capslock to
+            attract attention.
+            body (str): body of the email.
+        """
+        msg = MIMEMultipart()
+        msg["From"] = "dungnguyen10082000@gmail.com"
+        msg["To"] = "dungnm2.ho@vietcombank.com.vn"
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain"))
+
+        try:
+            with smtplib.SMTP("smtp.gmail.com", 587) as server:
+                server.starttls()  # Use TLS
+                server.login("dungnguyen10082000@gmail.com", "cqivsivdvasduedn")
+                server.send_message(msg)
+        except Exception as e:
+            print(f"Failed to send email: {e}")
+
     @pyqtSlot()
     def change_polygon_color(self) -> None:
         """
@@ -826,6 +866,10 @@ class PolygonDetectionApp(QMainWindow):
                 )  # Warning that there are more people in the zone
                 # Could run special functions here, for example a function to
                 # send emails to whoever in charge
+                self.send_email(
+                    "MAX NUMBER OF PEOPLE BREACHED!",
+                    "There are too many people in this area!",
+                )
         else:
             self.high_count_frames = 0
             self.status_label.setStyleSheet(
