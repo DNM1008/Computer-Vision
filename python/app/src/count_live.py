@@ -1,19 +1,26 @@
+"""
+Import the modules to ensure that the app can take in json files
+
+
+"""
+
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import json
 import os
+import smtplib
 import sys
 import time
-import torch
 from typing import List, Optional, Tuple
+import torch
 
 import cv2
 import numpy as np
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import (
     QApplication,
+    QCheckBox,
     QColorDialog,
     QComboBox,
     QFileDialog,
@@ -227,7 +234,7 @@ class VideoProcessor:
         polygon_thickness: Line thickness for polygon drawing.
     """
 
-    def __init__(self, model_path: str = "../data/yolov8l.pt"):
+    def __init__(self, model_path: str = "../data/yolo12l.pt"):
         """
         Initialize the video processor.
 
@@ -401,6 +408,7 @@ class PolygonDetectionApp(QMainWindow):
         self.processor = VideoProcessor()
         self.high_count_frames = 0
         self.max_high_count_frames = 10
+        self.email_enabled = False
 
         self._setup_ui()
         self._setup_signals()
@@ -471,6 +479,12 @@ class PolygonDetectionApp(QMainWindow):
         self.confidence_threshold_spinbox.setValue(0.7)
         config_layout.addWidget(QLabel("Confidence Threshold:"))
         config_layout.addWidget(self.confidence_threshold_spinbox)
+
+        # Email Toggle Checkbox
+        self.toggle_email_checkbox = QCheckBox("Send Emails", self)
+        self.toggle_email_checkbox.setChecked(False)  # Default to false
+        self.toggle_email_checkbox.stateChanged.connect(self.update_email_state)
+        config_layout.addWidget(self.toggle_email_checkbox)
 
         left_layout.addLayout(config_layout)
 
@@ -563,6 +577,22 @@ class PolygonDetectionApp(QMainWindow):
         self.stop_detection_btn.clicked.connect(self.stop_detection)
         self.change_color_btn.clicked.connect(self.change_polygon_color)
         self.close_btn.clicked.connect(self.close)
+
+    def update_email_state(self, state):
+        """
+        Updates the email state.
+
+        This function toggles the email state, if it's set to false, then the
+        program won't send emails even if there are more people than the
+        threshold in the polygon.
+
+        If it's set to true then it would only send emails if there are more
+        people than the threshold in the polygon.
+
+        Args:
+            state ():
+        """
+        self.email_enabled = bool(state)  # Store the state as a boolean
 
     def send_email(self, subject, body):
         """
@@ -859,17 +889,23 @@ class PolygonDetectionApp(QMainWindow):
         self.processor.set_confidence(confidence_threshold)
 
         if count > person_count_threshold:
+            # If there are more people in the polygon than the threshold
             self.high_count_frames += 1
             if self.high_count_frames > self.max_high_count_frames:
                 self.status_label.setStyleSheet(
-                    "font-size: 50px; font-weight: bold; font-family: Arial; color: #ed8796;"
-                )  # Warning that there are more people in the zone
+                    "font-size: 50px;\n"
+                    "font-weight: bold;\n"
+                    "font-family: Arial;\n"
+                    "color: #ed8796;"
+                )
+
                 # Could run special functions here, for example a function to
                 # send emails to whoever in charge
-                self.send_email(
-                    "MAX NUMBER OF PEOPLE BREACHED!",
-                    "There are too many people in this area!",
-                )
+                if self.email_enabled is True:
+                    self.send_email(
+                        "MAX NUMBER OF PEOPLE BREACHED!",
+                        "There are too many people in this area!",
+                    )
         else:
             self.high_count_frames = 0
             self.status_label.setStyleSheet(
