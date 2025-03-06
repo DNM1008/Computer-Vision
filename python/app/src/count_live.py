@@ -1,6 +1,6 @@
 """
 Import the modules to ensure that the app can take in json files
-
+as well as handle multi-thread
 
 """
 
@@ -11,6 +11,8 @@ import os
 import smtplib
 import sys
 import time
+import threading
+from threading import Lock
 from typing import List, Optional, Tuple
 import torch
 
@@ -409,6 +411,10 @@ class PolygonDetectionApp(QMainWindow):
         self.high_count_frames = 0
         self.max_high_count_frames = 10
         self.email_enabled = False
+        self.max_people_exceeded = False
+        self.email_cooldown = 60  # Email cool down time
+        self.last_email_time = None  # Set to None initially
+        self.email_lock = Lock()
 
         self._setup_ui()
         self._setup_signals()
@@ -589,10 +595,8 @@ class PolygonDetectionApp(QMainWindow):
         If it's set to true then it would only send emails if there are more
         people than the threshold in the polygon.
 
-        Args:
-            state ():
         """
-        self.email_enabled = bool(state)  # Store the state as a boolean
+        self.email_enabled = state == Qt.Checked
 
     def send_email(self, subject, body):
         """
@@ -610,12 +614,12 @@ class PolygonDetectionApp(QMainWindow):
         msg["To"] = "dungnm2.ho@vietcombank.com.vn"
         msg["Subject"] = subject
         msg.attach(MIMEText(body, "plain"))
-
         try:
             with smtplib.SMTP("smtp.gmail.com", 587) as server:
                 server.starttls()  # Use TLS
                 server.login("dungnguyen10082000@gmail.com", "cqivsivdvasduedn")
                 server.send_message(msg)
+                print("Email sent!")
         except Exception as e:
             print(f"Failed to send email: {e}")
 
@@ -861,6 +865,7 @@ class PolygonDetectionApp(QMainWindow):
         This method:
             - Updates the displayed frame in the UI.
             - Adjusts the status label color based on the detected count.
+            - Sends an email to the supervisor every minute in a separate thread
             - Logs detection results for debugging and tracking.
             - The user can update the person count and confidence_threshold here
 
@@ -891,6 +896,7 @@ class PolygonDetectionApp(QMainWindow):
         if count > person_count_threshold:
             # If there are more people in the polygon than the threshold
             self.high_count_frames += 1
+
             if self.high_count_frames > self.max_high_count_frames:
                 self.status_label.setStyleSheet(
                     "font-size: 50px;\n"
@@ -901,11 +907,26 @@ class PolygonDetectionApp(QMainWindow):
 
                 # Could run special functions here, for example a function to
                 # send emails to whoever in charge
-                if self.email_enabled is True:
-                    self.send_email(
-                        "MAX NUMBER OF PEOPLE BREACHED!",
-                        "There are too many people in this area!",
-                    )
+                # self.send_email(
+                #     "ALERT: THE MAXIMUM NUMBER OF PEOPLE BREACHED!",
+                #     "There are too many people in the designated area!",
+                # )
+            current_time = time.time()
+            with self.email_lock:  # Ensure thread safety
+                if (
+                    self.last_email_time is None
+                    or current_time - self.last_email_time > self.email_cooldown
+                ):
+                    self.last_email_time = current_time
+                    if self.email_enabled is True:
+                        threading.Thread(
+                            target=self.send_email,
+                            args=(
+                                "ALERT: THE MAXIMUM NUMBER OF PEOPLE BREACHED!",
+                                "There are too many people in the designated area!",
+                            ),
+                            daemon=True,
+                        ).start()
         else:
             self.high_count_frames = 0
             self.status_label.setStyleSheet(

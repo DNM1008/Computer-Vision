@@ -1,4 +1,5 @@
 *.pt
+*.pptx
 *.pdf
 *.mat
 *.png
@@ -7,3 +8,4 @@
 *.mkv
 .computervision/
 .debug/
+models/yolo/output_images/extracted_images/
