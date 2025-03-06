@@ -924,7 +924,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     # Set app theme
-    with open("../conf/theme.qss", "r") as file:
+    with open("../conf/theme.qss", "r", encoding="utf-8") as file:
         theme = file.read()
     app.setStyleSheet(theme)
 

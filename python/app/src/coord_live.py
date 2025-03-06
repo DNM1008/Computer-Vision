@@ -75,7 +75,6 @@ class ConnectionDialog(QDialog):
         layout.addWidget(buttons)
 
         self.setLayout(layout)
-        self.apply_theme()
 
     def get_ip(self):
         """
@@ -85,24 +84,6 @@ class ConnectionDialog(QDialog):
             str: the ip address
         """
         return self.ip_input.text()
-
-    def apply_theme(self):
-        """
-        Apply Catppuccin Macchiato color scheme.
-
-        This method looks at ../conf/catppuccin_macchiato.qss and apply the theme
-        """
-
-        qss_path = os.path.join(
-            os.path.dirname(__file__), "..", "conf", "catppuccin_macchiato.qss"
-        )
-        qss_path = os.path.abspath(qss_path)
-        try:
-            with open(qss_path, "r") as file:
-                self.setStyleSheet(file.read())
-                print("Stylesheet applied successfully.")
-        except FileNotFoundError:
-            print(f"Stylesheet not found at {qss_path}")
 
 
 class CredentialsDialog(QDialog):
@@ -141,7 +122,6 @@ class CredentialsDialog(QDialog):
         layout.addWidget(buttons)
 
         self.setLayout(layout)
-        self.apply_theme()
 
     def get_credentials(self):
         """
@@ -162,24 +142,6 @@ class CredentialsDialog(QDialog):
             self.password_input.text(),
             self.profile_combo.currentText(),
         )
-
-    def apply_theme(self):
-        """
-        Apply Catppuccin Macchiato color scheme.
-
-        This method looks at ../conf/catppuccin_macchiato.qss and apply the theme
-        """
-
-        qss_path = os.path.join(
-            os.path.dirname(__file__), "..", "conf", "catppuccin_macchiato.qss"
-        )
-        qss_path = os.path.abspath(qss_path)
-        try:
-            with open(qss_path, "r") as file:
-                self.setStyleSheet(file.read())
-                print("Stylesheet applied successfully.")
-        except FileNotFoundError:
-            print(f"Stylesheet not found at {qss_path}")
 
 
 class VideoPointSelector(QWidget):
@@ -299,27 +261,6 @@ class VideoPointSelector(QWidget):
 
         # Viewing mode checkbox
         self.edit_mode = False
-
-        # Apply Catppuccin Macchiato Theme
-        self.apply_theme()
-
-    def apply_theme(self):
-        """
-        Apply Catppuccin Macchiato color scheme.
-
-        This method looks at ../conf/catppuccin.qss and apply the theme
-        """
-
-        qss_path = os.path.join(
-            os.path.dirname(__file__), "..", "conf", "catppuccin_macchiato.qss"
-        )
-        qss_path = os.path.abspath(qss_path)
-        try:
-            with open(qss_path, "r") as file:
-                self.setStyleSheet(file.read())
-                print("Stylesheet applied successfully.")
-        except FileNotFoundError:
-            print(f"Stylesheet not found at {qss_path}")
 
     def toggle_edit_mode(self, state):
         """
@@ -775,6 +716,13 @@ class VideoPointSelector(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    # Set app theme
+    with open("../conf/theme.qss", "r", encoding="utf-8") as file:
+        theme = file.read()
+    app.setStyleSheet(theme)
+
+    # Open window
     selector = VideoPointSelector()
     selector.show()
     sys.exit(app.exec_())
