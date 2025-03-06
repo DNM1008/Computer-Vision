@@ -69,7 +69,6 @@ class ConnectionDialog(QDialog):
         layout.addWidget(buttons)
 
         self.setLayout(layout)
-        self.apply_theme()
 
     def get_ip(self):
         """
@@ -79,24 +78,6 @@ class ConnectionDialog(QDialog):
             str: the ip address
         """
         return self.ip_input.text()
-
-    def apply_theme(self):
-        """
-        Apply Catppuccin Macchiato color scheme.
-
-        This method looks at ../conf/catpuccin.qss and apply the theme
-        """
-
-        qss_path = os.path.join(
-            os.path.dirname(__file__), "..", "conf", "catppuccin_macchiato.qss"
-        )
-        qss_path = os.path.abspath(qss_path)
-        try:
-            with open(qss_path, "r") as file:
-                self.setStyleSheet(file.read())
-                print("Stylesheet applied successfully.")
-        except FileNotFoundError:
-            print(f"Stylesheet not found at {qss_path}")
 
 
 class CredentialsDialog(QDialog):
@@ -135,7 +116,6 @@ class CredentialsDialog(QDialog):
         layout.addWidget(buttons)
 
         self.setLayout(layout)
-        self.apply_theme()
 
     def get_credentials(self):
         """
@@ -156,24 +136,6 @@ class CredentialsDialog(QDialog):
             self.password_input.text(),
             self.profile_combo.currentText(),
         )
-
-    def apply_theme(self):
-        """
-        Apply Catppuccin Macchiato color scheme.
-
-        This method looks at ../conf/catpuccin.qss and apply the theme
-        """
-
-        qss_path = os.path.join(
-            os.path.dirname(__file__), "..", "conf", "catppuccin_macchiato.qss"
-        )
-        qss_path = os.path.abspath(qss_path)
-        try:
-            with open(qss_path, "r") as file:
-                self.setStyleSheet(file.read())
-                print("Stylesheet applied successfully.")
-        except FileNotFoundError:
-            print(f"Stylesheet not found at {qss_path}")
 
 
 class StreamRedirect:
@@ -418,7 +380,6 @@ class PolygonDetectionApp(QMainWindow):
 
         self._setup_ui()
         self._setup_signals()
-        self.apply_theme()
 
     def _setup_ui(self) -> None:
         """
@@ -543,24 +504,6 @@ class PolygonDetectionApp(QMainWindow):
             "background-color: #ed8796; color: #181926; font-weight: bold;"
         )
         controls_layout.addWidget(self.close_btn)
-
-    def apply_theme(self):
-        """
-        Apply Catppuccin Macchiato color scheme.
-
-        This method looks at ../conf/catpuccin.qss and apply the theme
-        """
-
-        qss_path = os.path.join(
-            os.path.dirname(__file__), "..", "conf", "catppuccin_macchiato.qss"
-        )
-        qss_path = os.path.abspath(qss_path)
-        try:
-            with open(qss_path, "r") as file:
-                self.setStyleSheet(file.read())
-                print("Stylesheet applied successfully.")
-        except FileNotFoundError:
-            print(f"Stylesheet not found at {qss_path}")
 
     def _setup_signals(self) -> None:
         """
@@ -979,6 +922,13 @@ class PolygonDetectionApp(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    # Set app theme
+    with open("../conf/theme.qss", "r") as file:
+        theme = file.read()
+    app.setStyleSheet(theme)
+
+    # Show window
     window = PolygonDetectionApp()
     window.show()
     sys.exit(app.exec_())
