@@ -43,6 +43,7 @@ from PyQt5.QtWidgets import (
 )
 from shapely.geometry import Point, Polygon
 from ultralytics import YOLO
+from ultralytics import NAS
 
 
 class ConnectionDialog(QDialog):
@@ -184,7 +185,7 @@ class StreamRedirect:
 
 class VideoProcessor:
     """
-    Handles video processing operations using YOLOv8 for object detection.
+    Handles video processing operations using YOLO for object detection.
 
     This class manages video frame processing, object detection, and visualization
     of detection results including polygon zones and detected persons.
@@ -198,7 +199,8 @@ class VideoProcessor:
         polygon_thickness: Line thickness for polygon drawing.
     """
 
-    def __init__(self, model_path: str = "../data/yolo12l.pt"):
+    def __init__(self, model_path: str = "../data/yolo12n.pt"):
+        # def __init__(self, model_path: str = "../data/yolo_nas_l.pt"):
         """
         Initialize the video processor.
 
@@ -207,6 +209,7 @@ class VideoProcessor:
         """
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = YOLO(model_path).to(self.device)
+        # self.model = NAS(model_path).to(self.device)
         self.confidence_threshold = 0.7
         self.frame_skip = 1  # Process every nth frame
         self.frame_count = 0
@@ -765,7 +768,7 @@ class PolygonDetectionApp(QMainWindow):
             Exception: If frame processing encounters an error.
 
         UI Elements:
-            - Calls `_update_ui()` to update the displayed frame and detection results.
+            - Calls `_update_state()` to update the displayed frame and detection results.
             - Prints error messages in case of processing failure.
         """
         try:
@@ -790,8 +793,8 @@ class PolygonDetectionApp(QMainWindow):
                 1 for center in centers if polygon.contains(Point(center))
             )
 
-            # Update UI
-            self._update_ui(
+            # Update state
+            self._update_state(
                 processed_frame, people_in_zone, inference_time, person_count
             )
 
@@ -799,7 +802,7 @@ class PolygonDetectionApp(QMainWindow):
             print(f"[ERROR] Frame processing failed: {str(e)}")
             self.stop_detection()
 
-    def _update_ui(
+    def _update_state(
         self, frame: np.ndarray, count: int, inference_time: float, total_count: int
     ) -> None:
         """
