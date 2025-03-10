@@ -32,22 +32,6 @@ functionalities.
 In `/python/test/`, I mainly work on them and copy the final results
 to the app folder.
 
-- `area_define.py` is used for testing, it should allow the user to import an
-  image file and a coordinate file and graph those coordinates on the image,
-  highlighting the area covered by the polygon made up by the dots defined by
-  the coordinates.
-- `coords_image.py` is used to define the coordinates on an image, this could be a
-  frame from a video.
-- `coords_video.py` is similar to `coords_image.py`, with extra functionalities
-  to work with videos as well. This is intended to be 1 of the 2 final products.
-- `count_image.py` counts the number of people in an area in an image. The user
-  imports the image and coordinate files.
-- `count_video.py` and `count_video_rtdert.py` counts the number of people in an
-  area in a video. This is the other final products.
-- `crop.py` crops the image/video to the smallest frame containing the every set
-  of coordinates
-- `debug.py` is used for testing, ignore this.
-
 In `/python/dev/` there should be the GUI apps, although they are all
 in 1 file so not ideal. Probably good to have them around though.
 
@@ -61,6 +45,10 @@ In `/ModelsYolo/python/app/` there should be the final GUI apps.
     wait until the final specs.
 - `count_live.py` takes `count_video.py` and modifies it so that it takes a live
   feed from an IP security camera instead of a static file.
+- `label.py` helps the user labelling images from a dataset by applying yolov8n.
+  The user can then adjust the labelling to their liking and export them to the
+  yolo format
+- The apps takes themeing from `python/app/conf/theme.qss`.
 - Working on a coordinate app as well.
 
 ## Current state

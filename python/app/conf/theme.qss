@@ -56,3 +56,33 @@ QMessageBox {
     background-color: #24273A;
     color: #CAD3F5;
 }
+QCheckBox {
+    color: #CAD3F5;  /* Text colour */
+    spacing: 5px;  /* Space between checkbox and text */
+}
+
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 2px solid #494D64;  /* Border colour */
+    background: #1E2030;  /* Default background */
+}
+
+QCheckBox::indicator:hover {
+    border: 2px solid #8AADF4;  /* Border colour on hover */
+}
+
+QCheckBox::indicator:checked {
+    background: #8AADF4;  /* Tickbox background when checked */
+    border: 2px solid #8AADF4;
+}
+
+QCheckBox::indicator:checked:hover {
+    background: #B7BDF8;  /* Slightly lighter blue on hover */
+}
+
+QCheckBox::indicator:disabled {
+    background: #363A4F;  /* Greyed-out background */
+    border: 2px solid #494D64;
+}
