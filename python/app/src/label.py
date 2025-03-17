@@ -477,10 +477,10 @@ class ImageLabeller(QMainWindow):
 
     def export_labels(self):
         """
-        Exports all labelled bounding boxes in the YOLO format.
+        Exports all labeled bounding boxes in the YOLO format.
 
         Saves labels as text files with the same name as the corresponding image.
-        Displays a message indicating success or errors encountered.
+        Uses the **original image size** for normalization to avoid incorrect annotations.
         """
         if not self.image_files:
             QMessageBox.warning(self, "Warning", "No images loaded to export labels.")
@@ -496,19 +496,23 @@ class ImageLabeller(QMainWindow):
             )
 
             try:
-                image = Image.open(image_path)
-                width, height = image.size
+                # Load the image **without resizing** to get original dimensions
+                with Image.open(image_path) as image:
+                    width, height = image.size  # Use original image dimensions
 
                 if image_name in self.detections:
                     with open(label_file, "w") as f:
                         for box in self.detections[image_name]:
                             x1, y1, x2, y2 = box["bbox"]
+
+                            # Normalize using **original image size**
                             x_center = ((x1 + x2) / 2) / width
                             y_center = ((y1 + y2) / 2) / height
                             box_width = (x2 - x1) / width
                             box_height = (y2 - y1) / height
+
                             f.write(
-                                f"{box['class']} {x_center} {y_center} {box_width} {box_height}\n"
+                                f"{box['class']} {x_center:.6f} {y_center:.6f} {box_width:.6f} {box_height:.6f}\n"
                             )
                     exported_count += 1
             except Exception as e:
