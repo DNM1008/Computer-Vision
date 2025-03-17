@@ -1,0 +1,4 @@
+
+for file in *.mkv; do
+    ffmpeg -i "$file" -c:v copy -c:a copy "${file%.mkv}.mov"
+done

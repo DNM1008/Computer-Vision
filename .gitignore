@@ -6,6 +6,7 @@
 *.jpg
 *.avi
 *.mkv
+*.mov
 .computervision/
 .debug/
 models/yolo/output_images/extracted_images/
