@@ -1,0 +1,24 @@
+
+#!/bin/bash
+
+# Check if a directory was provided
+if [ -z "$1" ]; then
+    echo "Usage: $0 /path/to/videos"
+    exit 1
+fi
+
+input_dir="$1"
+
+# Loop through all video files in the directory
+find "$input_dir" -type f \( -iname "*.avi" -o -iname "*.mp4" -o -iname "*.mov" -o -iname "*.mkv" -o -iname "*.flv" -o -iname "*.wmv" \) | while read -r video; do
+    video_name=$(basename "$video" | sed 's/\.[^.]*$//')  # Remove file extension
+    video_dir=$(dirname "$video")/"$video_name"  # Output folder next to video
+
+    # Create output directory if not exists
+    mkdir -p "$video_dir"
+
+    # Extract frames using ffmpeg (every frame)
+    ffmpeg -i "$video" -q:v 2 "$video_dir/frame_%04d.jpg"
+
+    echo "Extracted frames from $video into $video_dir"
+done
