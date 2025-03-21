@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Get the parent directory name
+parent_dir=$(basename "$(pwd)")
+
+# Loop through all video files in the current directory
+for video in *.{avi,mp4,mov,mkv,flv,wmv}; do
+    # Check if any matching files exist
+    [[ -e "$video" ]] || continue
+
+    # Extract video filename without extension
+    video_name="${video%.*}"
+
+    # Create an output directory based on the video name
+    output_dir="./${video_name}"
+    mkdir -p "$output_dir"
+
+    # Extract frames with parent directory and video name in filename
+    ffmpeg -i "$video" -q:v 2 "$output_dir/${parent_dir}_${video_name}_frame_%04d.jpg"
+
+    echo "Extracted frames from $video into $output_dir with naming format: ${parent_dir}_${video_name}_frame_XXXX.jpg"
+done
