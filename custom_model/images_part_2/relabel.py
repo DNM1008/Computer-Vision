@@ -9,7 +9,7 @@ output_dir = "yolo_labels"
 os.makedirs(output_dir, exist_ok=True)  # Create if it doesn't exist
 
 # Define class mapping
-class_mapping = {"tien": 0, "atm": 1, "casset": 2}
+class_mapping = {"casset": 0, "tien": 1, "atm": 2}
 
 # Loop through all JSON files in the current directory
 for json_file in os.listdir(json_dir):

@@ -70,7 +70,7 @@ validate_files(val_destination_dir)
 # Create dataset.yaml configuration
 dataset_config = {
     "nc": 3,  # Number of classes (make sure it matches the number of labels in your dataset)
-    "names": ["atm", "casset", "tien"],  # Class names
+    "names": ["casset", "tien", "atm"],  # Class names
     "train": train_destination_dir,
     "val": val_destination_dir,
     "device": 0,
