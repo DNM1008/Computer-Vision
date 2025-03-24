@@ -199,8 +199,8 @@ class VideoProcessor:
         polygon_thickness: Line thickness for polygon drawing.
     """
 
-    def __init__(self, model_path: str = "../data/yolo12n.pt"):
-        # def __init__(self, model_path: str = "../data/yolo_nas_l.pt"):
+    # def __init__(self, model_path: str = "../data/yolov8l.pt"):
+    def __init__(self, model_path: str = "../data/best.pt"):
         """
         Initialize the video processor.
 
@@ -272,8 +272,8 @@ class VideoProcessor:
         Process a single frame with YOLO detection.
 
         Each nth frame is put through the model, where it detects and classifies
-        objects. If an object fits the classifcation and has its centre within
-        the bounderies of the polygon, they're considered "in the zone"
+        objects. If an object fits the classification and has its centre within
+        the boundaries of the polygon, they're considered "in the zone."
 
         Args:
             frame: Input video frame.
@@ -303,15 +303,16 @@ class VideoProcessor:
 
             for box in boxes:
                 x1, y1, x2, y2, conf, cls = box
-                if (
-                    conf >= self.confidence_threshold
-                    and self.model.names[int(cls)] == "person"
-                ):
-                    person_count += 1
+                class_name = self.model.names[int(cls)]
+
+                if conf >= self.confidence_threshold:
+                    if class_name == "person":
+                        person_count += 1
+
                     center = (int((x1 + x2) / 2), int((y1 + y2) / 2))
                     centers.append(center)
 
-                    # Draw bounding box and confidence
+                    # Draw bounding box
                     cv2.rectangle(
                         frame,
                         (int(x1), int(y1)),
@@ -320,10 +321,11 @@ class VideoProcessor:
                         2,
                     )
 
-                    confidence_text = f"{conf:.2f}"
+                    # Add class name and confidence
+                    label = f"{class_name} {conf:.2f}"
                     cv2.putText(
                         frame,
-                        confidence_text,
+                        label,
                         (int(x1), int(y1) - 10),
                         cv2.FONT_HERSHEY_SIMPLEX,
                         0.5,
@@ -366,7 +368,7 @@ class PolygonDetectionApp(QMainWindow):
         """Initialize the application window and setup UI components."""
         super().__init__()
         self.setWindowTitle("YOLOv8 Polygon Detection")
-        self.setGeometry(1000, 100, 3200, 1800)
+        self.setGeometry(100, 100, 1280, 1440)
 
         # Initialize state
         self.video_path: Optional[str] = None
@@ -402,25 +404,22 @@ class PolygonDetectionApp(QMainWindow):
 
         # Video display
         self.video_label = QLabel()
-        self.video_label.setMinimumSize(1920, 1080)
+        self.video_label.setMinimumSize(400, 400)
         left_layout.addWidget(self.video_label)
 
         # Controls
         controls_layout = QHBoxLayout()
 
+        self.import_live_btn = QPushButton("Import Live Feed")
         self.import_video_btn = QPushButton("Import Video")
         self.import_json_btn = QPushButton("Import coordinates")
         self.change_color_btn = QPushButton("Change Polygon Color")
         self.start_detection_btn = QPushButton("Start Detection")
-        self.start_detection_btn.setStyleSheet(
-            "background-color: #a6da95; color: #181926; font-weight: bold;"
-        )  # Start button highlight
         self.stop_detection_btn = QPushButton("Stop")
-        self.stop_detection_btn.setStyleSheet(
-            "background-color: #eed49f; color: #181926; font-weight: bold;"
-        )  # Start button highlight
 
+        # Button css
         for btn in [
+            self.import_live_btn,
             self.import_video_btn,
             self.import_json_btn,
             self.change_color_btn,
@@ -428,6 +427,13 @@ class PolygonDetectionApp(QMainWindow):
             self.stop_detection_btn,
         ]:
             controls_layout.addWidget(btn)
+            btn.setStyleSheet("font-size: 16px;")
+        self.start_detection_btn.setStyleSheet(
+            "background-color: #a6da95; color: #181926; font-weight: bold;"
+        )  # Start button highlight
+        self.stop_detection_btn.setStyleSheet(
+            "background-color: #eed49f; color: #181926; font-weight: bold;"
+        )  # Start button highlight
 
         left_layout.addLayout(controls_layout)
 
@@ -504,7 +510,7 @@ class PolygonDetectionApp(QMainWindow):
         # Add close button
         self.close_btn = QPushButton("Close Program")
         self.close_btn.setStyleSheet(
-            "background-color: #ed8796; color: #181926; font-weight: bold;"
+            "font-size: 16px; background-color: #ed8796; color: #181926; font-weight: bold;"
         )
         controls_layout.addWidget(self.close_btn)
 
@@ -513,16 +519,23 @@ class PolygonDetectionApp(QMainWindow):
         Connect UI signals to their respective slots.
 
         This method establishes connections between UI elements (buttons) and their
-        corresponding event handler methods, enabling user interaction with the application.
+        corresponding event handler methods, enabling user interaction with the
+        application.
 
         Connected Signals:
-            - `import_video_btn.clicked` → `import_video()`: Opens a dialog to import a video file.
-            - `import_json_btn.clicked` → `import_json()`: Loads polygon coordinates from a JSON file.
-            - `start_detection_btn.clicked` → `start_detection()`: Begins object detection in the video.
-            - `stop_detection_btn.clicked` → `stop_detection()`: Stops the detection process.
-            - `change_color_btn.clicked` → `change_polygon_color()`: Opens a color picker to change the polygon color.
+            - `import_live_btn.clicked` → `import_live()`: Opens a dialog to
+              import a live feed file.
+            - `import_json_btn.clicked` → `import_json()`: Loads polygon
+              coordinates from a JSON file.
+            - `start_detection_btn.clicked` → `start_detection()`: Begins object
+              detection in the live feed.
+            - `stop_detection_btn.clicked` → `stop_detection()`: Stops the
+              detection process.
+            - `change_color_btn.clicked` → `change_polygon_color()`: Opens a
+              color picker to change the polygon color.
             - `close_btn.clicked` → `close()`: Closes the application.
         """
+        self.import_live_btn.clicked.connect(self.import_live)
         self.import_video_btn.clicked.connect(self.import_video)
         self.import_json_btn.clicked.connect(self.import_json)
         self.start_detection_btn.clicked.connect(self.start_detection)
@@ -582,7 +595,7 @@ class PolygonDetectionApp(QMainWindow):
             self.processor.polygon_color = (color.blue(), color.green(), color.red())
 
     @pyqtSlot()
-    def import_video(self) -> None:
+    def import_live(self) -> None:
         """
         Open a (series of) of dialogs to import a video stream into the program
 
@@ -637,6 +650,54 @@ class PolygonDetectionApp(QMainWindow):
 
             self.video_path = rtsp_url
             print(f"[INFO] Loaded video from: {rtsp_url}")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to load video: {str(e)}")
+            self.video_capture = None
+
+    def import_video(self) -> None:
+        """
+        Opens a file dialog to import a video file and initializes video capture.
+
+        This method allows the user to select a video file using a file dialog.
+        It then attempts to load the selected video using OpenCV. If a video is
+        already loaded, it releases the previous video capture before opening the new one.
+
+        Error handling is included to manage file selection issues or video loading failures.
+
+        Raises:
+            RuntimeError: If the selected video file cannot be opened.
+
+        UI Elements:
+            - Opens a QFileDialog for selecting a video file.
+            - Displays a QMessageBox in case of an error.
+
+        Supported Formats:
+            - MP4 (*.mp4)
+            - AVI (*.avi)
+            - MOV (*.mov)
+            - MKV (*.mkv)
+        """
+        try:
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Open Video File",
+                "",
+                "Videos (*.mp4 *.avi *.mov *.mkv);;All Files (*)",
+            )
+
+            if not file_path:
+                return
+
+            if self.video_capture:
+                self.video_capture.release()
+
+            self.video_capture = cv2.VideoCapture(file_path)
+            if not self.video_capture.isOpened():
+                raise RuntimeError("Failed to open video file")
+
+            self.video_path = file_path
+            print(f"[INFO] Loaded video: {file_path}")
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load video: {str(e)}")
