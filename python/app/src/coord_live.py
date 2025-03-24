@@ -184,8 +184,8 @@ class VideoPointSelector(QWidget):
         self.right_panel = QVBoxLayout()
 
         # Buttons
-        self.load_button = QPushButton("Load Video", self)
-        self.load_button.clicked.connect(self.load_video)
+        self.load_button = QPushButton("Load Live Feed", self)
+        self.load_button.clicked.connect(self.load_live)
         self.right_panel.addWidget(self.load_button)
 
         self.undo_button = QPushButton("Undo", self)
@@ -294,11 +294,11 @@ class VideoPointSelector(QWidget):
                 self.scene.removeItem(self.polygon_item)
                 self.polygon_item = None  # Remove reference
 
-    def load_video(self):
+    def load_live(self):
         """
-        Loads and initializes video playback.
+        Loads and initializes live video playback.
 
-        - Opens the selected video file and sets it for playback.
+        - Opens the selected live video file and sets it for playback.
         - If the video fails to load, an error message is displayed.
         - Enables video controls (play/pause button and slider).
         - Calls `next_frame()` to display the first frame of the video.
