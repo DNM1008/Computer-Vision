@@ -9,7 +9,7 @@ import sys
 
 import cv2
 import numpy as np
-from PyQt5.QtCore import Qt, QTimer, QPointF, QLineF
+from PyQt5.QtCore import Qt, QTimer, QPointF, QLineF, pyqtSlot
 from PyQt5.QtGui import (
     QBrush,
     QColor,
@@ -113,7 +113,7 @@ class CredentialsDialog(QDialog):
         layout.addRow("Password:", self.password_input)
 
         self.profile_combo = QComboBox()
-        self.profile_combo.addItems(["profile1", "profile2", "profile3"])
+        self.profile_combo.addItems(["profile3", "profile2", "profile1"])
         layout.addRow("Profile:", self.profile_combo)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -184,9 +184,13 @@ class VideoPointSelector(QWidget):
         self.right_panel = QVBoxLayout()
 
         # Buttons
-        self.load_button = QPushButton("Load Live Feed", self)
-        self.load_button.clicked.connect(self.load_live)
-        self.right_panel.addWidget(self.load_button)
+        self.load_live_button = QPushButton("Load Live Feed", self)
+        self.load_live_button.clicked.connect(self.load_live)
+        self.right_panel.addWidget(self.load_live_button)
+
+        self.load_video_btn = QPushButton("Load Video", self)
+        self.load_video_btn.clicked.connect(self.load_video)
+        self.right_panel.addWidget(self.load_video_btn)
 
         self.undo_button = QPushButton("Undo", self)
         self.undo_button.clicked.connect(self.undo_last_point)
@@ -340,6 +344,60 @@ class VideoPointSelector(QWidget):
         self.timer.start()
         self.next_frame()
 
+    @pyqtSlot()
+    def load_video(self) -> None:
+        """
+        Opens a file dialog to import a video file and initializes video capture.
+
+        This method allows the user to select a video file using a file dialog.
+        It then attempts to load the selected video using OpenCV. If a video is
+        already loaded, it releases the previous video capture before opening
+        the new one.
+
+        Error handling is included to manage file selection issues or video
+        loading failures.
+
+        Raises:
+            RuntimeError: If the selected video file cannot be opened.
+
+        UI Elements:
+            - Opens a QFileDialog for selecting a video file.
+            - Displays a QMessageBox in case of an error.
+
+        Supported Formats:
+            - MP4 (*.mp4)
+            - AVI (*.avi)
+            - MOV (*.mov)
+            - MKV (*.mkv)
+        """
+        try:
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Open Video File",
+                "",
+                "Videos (*.mp4 *.avi *.mov *.mkv);;All Files (*)",
+            )
+
+            if not file_path:
+                return
+
+            if self.video_capture:
+                self.video_capture.release()
+
+            self.video_capture = cv2.VideoCapture(file_path)
+            if not self.video_capture.isOpened():
+                raise RuntimeError("Failed to open video file")
+
+            self.play_pause_button.setEnabled(True)
+            self.video_path = file_path
+            print(f"[INFO] Loaded video: {file_path}")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to load video: {str(e)}")
+            self.video_capture = None
+        # self.timer.start()
+        # self.next_frame()
+
     def next_frame(self):
         """
         Display the next frame.
@@ -411,7 +469,8 @@ class VideoPointSelector(QWidget):
             pixmap (Qpixmap): The pixmap that indicates the locations of the
             dots
         """
-        self.view.viewport().removeEventFilter(self)  # Temporarily disable event filter
+        # Temporarily disable event filter
+        self.view.viewport().removeEventFilter(self)
         self.current_pixmap = pixmap
 
         if self.pixmap_item:
@@ -505,8 +564,8 @@ class VideoPointSelector(QWidget):
         """
         Filters events for the view's viewport, handling mouse interactions.
 
-        This method processes mouse movements and clicks to update the cursor position
-        and allow the user to add draggable points on an image.
+        This method processes mouse movements and clicks to update the the
+        cursor and allow the user to add draggable points on an image.
 
         Args:
             obj (QObject): The object receiving the event.
