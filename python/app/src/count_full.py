@@ -199,8 +199,8 @@ class VideoProcessor:
         polygon_thickness: Line thickness for polygon drawing.
     """
 
-    # def __init__(self, model_path: str = "../data/yolov8l.pt"):
-    def __init__(self, model_path: str = "../data/best.pt"):
+    def __init__(self, model_path: str = "../data/yolov8l.pt"):
+        # def __init__(self, model_path: str = "../data/best.pt"):
         """
         Initialize the video processor.
 
@@ -272,8 +272,7 @@ class VideoProcessor:
         Process a single frame with YOLO detection.
 
         Each nth frame is put through the model, where it detects and classifies
-        objects. If an object fits the classification and has its centre within
-        the boundaries of the polygon, they're considered "in the zone."
+        objects. All detected objects are drawn, but only persons are counted.
 
         Args:
             frame: Input video frame.
@@ -287,18 +286,15 @@ class VideoProcessor:
                 - Count of detected persons
         """
         self.frame_count += 1
+        original_frame = frame.copy()
 
-        # Draw polygon on every frame
-        frame = self.draw_polygon(frame.copy(), polygon_points)
-
-        # Only run YOLO detection every nth frame
         if self.frame_count % self.frame_skip == 0:
             start_time = time.time()
-            results = self.model(frame)
+            results = self.model(original_frame)  # Run YOLO on the raw frame
             inference_time = (time.time() - start_time) * 1000
 
             boxes = results[0].boxes.data.cpu().numpy()
-            centers = []
+            person_centers = []
             person_count = 0
 
             for box in boxes:
@@ -306,13 +302,7 @@ class VideoProcessor:
                 class_name = self.model.names[int(cls)]
 
                 if conf >= self.confidence_threshold:
-                    if class_name == "person":
-                        person_count += 1
-
-                    center = (int((x1 + x2) / 2), int((y1 + y2) / 2))
-                    centers.append(center)
-
-                    # Draw bounding box
+                    # Draw bounding box for all detected objects
                     cv2.rectangle(
                         frame,
                         (int(x1), int(y1)),
@@ -321,7 +311,7 @@ class VideoProcessor:
                         2,
                     )
 
-                    # Add class name and confidence
+                    # Add label for all objects
                     label = f"{class_name} {conf:.2f}"
                     cv2.putText(
                         frame,
@@ -334,18 +324,27 @@ class VideoProcessor:
                         cv2.LINE_AA,
                     )
 
-                    # Draw center point
-                    cv2.circle(frame, center, 4, (138, 173, 244), -1)
+                    # Check if it's a person before counting/tracking
+                    if class_name == "person":
+                        person_count += 1
+                        center = (int((x1 + x2) / 2), int((y1 + y2) / 2))
+                        person_centers.append(center)
+
+                        # Draw center point for persons only
+                        cv2.circle(frame, center, 4, (138, 173, 244), -1)
 
             # Store last detection results
-            self._last_results = (centers, inference_time, person_count)
+            self._last_results = (person_centers, inference_time, person_count)
         else:
-            # Use last detection results for skipped frames
-            centers, inference_time, person_count = getattr(
+            # Use last results for skipped frames
+            person_centers, inference_time, person_count = getattr(
                 self, "_last_results", ([], 0.0, 0)
             )
 
-        return frame, centers, inference_time, person_count
+        # Draw polygon on the final output frame
+        frame = self.draw_polygon(frame, polygon_points)
+
+        return frame, person_centers, inference_time, person_count
 
 
 class PolygonDetectionApp(QMainWindow):
