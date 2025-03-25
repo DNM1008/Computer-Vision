@@ -290,7 +290,7 @@ class VideoProcessor:
 
         if self.frame_count % self.frame_skip == 0:
             start_time = time.time()
-            results = self.model(original_frame)  # Run YOLO on the raw frame
+            results = self.model(original_frame, imgsz=640)  # Run YOLO on the raw frame
             inference_time = (time.time() - start_time) * 1000
 
             boxes = results[0].boxes.data.cpu().numpy()
