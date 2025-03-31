@@ -56,6 +56,16 @@ In `/ModelsYolo/python/app/` there should be the final GUI apps.
 `coords_video.py` and `count_video.py` works with static videos, although will
 break in under any edge case.
 
+## Custom models
+
+- Custom models are being fine-tuned to detect objects that can trigger
+  analysis. These objects are cash cassettes (casset), cash (tien), and opened
+  ATM (atm).
+  - The first approach is to build 1 model that can detect them all, this is
+    "big model" and the results are in `big_model`.
+  - The second approach is to build 3 models that can detech 1 object at a time.
+    These models are trained in `small_{object_names}`.
+
 ## Future plans
 
 - Debug and ensure that the programs work in more edge cases
