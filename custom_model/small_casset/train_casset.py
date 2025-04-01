@@ -1,8 +1,13 @@
+"""
+Importing modules
+
+"""
+
+import os
 import warnings
 
 warnings.filterwarnings("ignore")
 
-import os
 import shutil
 import matplotlib.pyplot as plt
 import yaml
@@ -32,6 +37,13 @@ os.makedirs(val_destination_dir, exist_ok=True)
 
 # Function to copy files from source to destination
 def copy_files(source_dir, destination_dir):
+    """
+    Move the files to their correct directories
+
+    Args:
+        source_dir (str): the source directory, where the files currently are
+        destination_dir (): the target directory
+    """
     if not os.path.exists(source_dir):
         print(f"Warning: Source directory {source_dir} does not exist. Skipping.")
         return
@@ -52,6 +64,12 @@ copy_files(val_source_labels_dir, val_destination_dir)
 
 # Validate file consistency (Image-Label pairs check)
 def validate_files(directory):
+    """
+    Ensure that each image has a matching label file
+
+    Args:
+        directory (str): the directory where the images and labels are
+    """
     files = os.listdir(directory)
     image_extensions = {".jpg", ".jpeg", ".png"}  # Adjust based on dataset
     label_extension = ".txt"
