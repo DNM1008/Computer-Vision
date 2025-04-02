@@ -21,6 +21,7 @@
 =======
 *.txt
 *.yaml
+*.zip
 >>>>>>> d7c655c (custom model fine tuning)
 .computervision/
 .debug/
