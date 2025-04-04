@@ -1,29 +1,24 @@
+*.avi
 *.cache
 *.csv
 *.exe
-*.json
-*.pt
-*.pptx
-*.pdf
-*.mat
-*.png
-*.jpg
+*.ipynb
 *.jpeg
-*.avi
+*.jpg
+*.json
+*.mat
 *.mkv
 *.mov
 *.mp4
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
+*.pdf
+*.png
+*.pptx
+*.pt
+*.txt
 *.txt
 *.yaml
->>>>>>> d7c655c (custom model fine tuning)
-=======
-*.txt
 *.yaml
 *.zip
->>>>>>> d7c655c (custom model fine tuning)
 .computervision/
 .debug/
 models/yolo/output_images/extracted_images/
