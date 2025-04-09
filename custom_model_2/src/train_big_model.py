@@ -24,12 +24,13 @@ print(f"Using base directory: {base_dir}")
 # Define dataset paths
 
 # Set local working directory for training
-train_destination_dir = os.path.join(base_dir, "train")
-val_destination_dir = os.path.join(base_dir, "val")
+train_destination_dir = os.path.join(base_dir, "../data/big_train")
+val_destination_dir = os.path.join(base_dir, "../data/big_val")
 
 # Create directories if they don't exist
 os.makedirs(train_destination_dir, exist_ok=True)
 os.makedirs(val_destination_dir, exist_ok=True)
+
 
 # Validate file consistency (Image-Label pairs check)
 def validate_files(directory):
@@ -59,6 +60,21 @@ def validate_files(directory):
         print(f"Labels without images: {unmatched_labels}")
 
 
+def delete_cache_files(folder_path):
+    """
+    Remove the .cache file in a directory
+
+    Args:
+        folder_path (str): path to the directory where the .cache files are
+    """
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            if file.endswith(".cache"):
+                file_path = os.path.join(root, file)
+                print(f"Deleting: {file_path}")
+                os.remove(file_path)
+
+
 validate_files(train_destination_dir)
 validate_files(val_destination_dir)
 
@@ -81,7 +97,7 @@ print(ultralytics.checks())
 
 # Load YOLO model
 # model = YOLO("yolov11n.pt")
-model = YOLO("../conf/source_model/yolov8n.pt")
+model = YOLO("../conf/source_model/yolov8s.pt")
 
 # Enable Automatic Mixed Precision for better performance
 if torch.cuda.is_available():
@@ -111,11 +127,8 @@ if os.path.exists(result_img_path):
     plt.show()
 
 
-    # Cleaning up the cache
-    for folder in ["../data/", "../src"]:
-    cache_files = glob.glob(os.path.join(folder, "**", "*.cache"), recursive=True)
-    for path in cache_files:
-        os.remove(path)
-        print(f"Deleted cache: {path}")
 else:
     print("Training results image not found!")
+
+
+delete_cache_files(os.path.join(base_dir, "../data/"))

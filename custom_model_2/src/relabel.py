@@ -2,10 +2,10 @@ import json
 import os
 
 # Input directory (current directory)
-json_dir = "../data/source_data/images_full"
+json_dir = "../data/source_data/data_full"
 
 # Output directory
-output_dir = "../data/source_data/labels_full"
+output_dir = "../data/source_data/big_labels"
 os.makedirs(output_dir, exist_ok=True)  # Create if it doesn't exist
 
 # Define class mapping
@@ -14,8 +14,9 @@ class_mapping = {"casset": 0, "tien": 1, "atm": 2}
 # Loop through all JSON files in the current directory
 for json_file in os.listdir(json_dir):
     if json_file.endswith(".json"):
+        json_path = os.path.join(json_dir, json_file)
         try:
-            with open(json_file, "r") as f:
+            with open(json_path, "r") as f:
                 data = json.load(f)
 
             # Get image dimensions
