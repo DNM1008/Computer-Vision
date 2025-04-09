@@ -1,5 +1,0 @@
-
-#!/bin/bash
-python3 small_atm/train_atm.py
-python3 small_casset/train_casset.py
-python3 small_tien/train_tien.py
