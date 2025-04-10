@@ -13,11 +13,11 @@ documents will be updated.
 
 ## Models in use
 
-Currently, Yolov8l from ultralytics is being used, but options such as CSRNet or
-RT-DETR are either bing explored, this document will mention their use should
+Currently, Yolov8l from Ultralytics is being used, but options such as CSRNet or
+RT-DETR are either being explored, this document will mention their use should
 they every become the main model in use.
 
-## Graphical application
+## Graphical demo applications
 
 To make it easy to implement, the models are implemented in simple GUI
 applications, which utilises the Qt5 framework to ensure that this application
@@ -27,15 +27,15 @@ tested only on Linux thus far.
 The applications are themed according to Catppuccin Macchiato using Qt's css
 functionalities.
 
-## Overview of the applications
+### Overview of the applications
 
-In `/python/test/`, I mainly work on them and copy the final results
+In `/demo_app/test/`, I mainly work on them and copy the final results
 to the app folder.
 
-In `/python/dev/` there should be the GUI apps, although they are all
+In `/demo_app/dev/` there should be the GUI apps, although they are all
 in 1 file so not ideal. Probably good to have them around though.
 
-In `/ModelsYolo/python/app/` there should be the final GUI apps.
+In `/demo_app/app/` there should be the final GUI apps.
 
 - The folder is broken up to `src`, `data` and `conf`. What goes where should be
   self-explanatory.
@@ -51,26 +51,72 @@ In `/ModelsYolo/python/app/` there should be the final GUI apps.
 - The apps takes themeing from `python/app/conf/theme.qss`.
 - Working on a coordinate app as well.
 
-## Current state
+### Current state
 
 `coords_video.py` and `count_video.py` works with static videos, although will
 break in under any edge case.
 
-## Custom models
-
-- Custom models are being fine-tuned to detect objects that can trigger
-  analysis. These objects are cash cassettes (casset), cash (tien), and opened
-  ATM (atm).
-  - The first approach is to build 1 model that can detect them all, this is
-    "big model" and the results are in `big_model`.
-  - The second approach is to build 3 models that can detech 1 object at a time.
-    These models are trained in `small_{object_names}`.
-
-## Future plans
+### Future plans
 
 - Debug and ensure that the programs work in more edge cases
 - Eventually test and compile code into executables for easier deployment
 - Test out other viable models (RT-DETR)
 - Solve other problems that banks face.
-  - To make sure that these programs can do real time tracking, develop the ability to take in network webcam instead of static files
+  - To make sure that these programs can do real time tracking, develop the
+    ability to take in network webcam instead of static files
 - Modularise code for easier debugging and feature adding
+
+## Custom models
+
+Custom models are being fine tuned for specific usecases since in reality, there
+are subtle difference between what the raw models provide and what is needed.
+
+### Triggers
+
+The problem with counting people is that some of the time, in fact, a lot of the
+time, it would be better if the program doesn't count people, in specific areas
+or not. This functionality and indeed any further analysis functionalities would
+only needed under a set of conditions. For example, in an ATM, we only care
+about the maximum number of people when the ATMs machines are being fed with
+cash, or being worked on, while when people are just withdrawing their money, we
+can allow unlimited number of people in the premise.
+
+As such, the triggers for these analysis were defined as cash, cash cassettes,
+and opened ATMs. Should any of these conditions or a mixture of these conditions,
+depending on the premise, occurs, counting people should begin.
+
+To recognise these conditions, from now on would be referred as "triggers", a
+separate models and mixture of models is included. The goal is to minimise the
+computational costs, or, failing that, at the very least improve the usability
+of the models.
+
+### Approach
+
+There are 2 approaches: 1 unified model or 3 separate models, each with their
+own pros and cons.
+
+Having 1 unified model simplifies the training process, and since this model
+would be running alone, it could theorectically be tuned from a larger model,
+potentially improving on accuracy.
+
+The other approach offers more focused and cluster-free models that in theory
+more align with the Unix philosophy: Do 1 thing and do it well. It is a more
+modular approach that should scale much more easily if there are more triggers
+and trigger combinations to come. It comes with a cost of model parameters.
+Since whether training for 1 or many classes, the model remains effectively the
+same in terms of complexity, the computer systems can only run so much. This
+means that the source models have to be smaller, thus potentially compromising
+on accuracy.
+
+### Current state
+
+There are already 4 models. Yet, due to the limited amount of data, they might
+be retrained once new data is available.
+
+They have not also been properly tested.
+
+### Future plans
+
+- Test the existing models
+- Retrain them with new data if necessary
+- Further apply the models in bank's operations.
