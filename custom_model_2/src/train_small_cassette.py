@@ -1,6 +1,6 @@
 """
-This program trains an AI Vision model that would detect opened ATMs (atm),
-cash (tien), or cash cassettes (cassette).
+This program trains an AI Vision model that would detect cash cassettes
+(cassette).
 
 It does so by doing the following:
     - Make sure that the labels and the image files match. For every image file,
@@ -13,7 +13,7 @@ It does so by doing the following:
           would be 0.5 and 0.5.
     - It generates a dataset yaml configuration file for later training or if the need
       arises for reconstruction and saves it to `../conf`
-    - It checks for a YOLOv8 model (s in this case) and downloads to
+    - It checks for a YOLOv8 model (n in this case) and downloads to
       `../conf/source_model/` if there isn't one there.
     - It then trains the model to recognise the objects and save the results in
       `../data/results/big_model/` and tries to display the result image.
@@ -42,8 +42,8 @@ print(f"Using base directory: {base_dir}")
 # Define dataset paths
 
 # Set local working directory for training
-train_destination_dir = os.path.join(base_dir, "../data/big_train")
-val_destination_dir = os.path.join(base_dir, "../data/big_val")
+train_destination_dir = os.path.join(base_dir, "../data/small_cassette_train")
+val_destination_dir = os.path.join(base_dir, "../data/small_cassette_val")
 
 # Create directories if they don't exist
 os.makedirs(train_destination_dir, exist_ok=True)
@@ -98,15 +98,15 @@ validate_files(val_destination_dir)
 
 # Create dataset.yaml configuration
 dataset_config = {
-    "nc": 3,  # Number of classes (make sure it matches the number of labels in your dataset)
-    "names": ["cassette", "tien", "atm"],  # Class names
+    "nc": 1,  # Number of classes (make sure it matches the number of labels in your dataset)
+    "names": ["cassette"],  # Class names
     "train": train_destination_dir,
     "val": val_destination_dir,
     "device": 0,
 }
 
 # Save YAML file
-yaml_path = os.path.join(base_dir, "../conf/big_dataset.yaml")
+yaml_path = os.path.join(base_dir, "../conf/small_cassette.yaml")
 with open(yaml_path, "w") as file:
     yaml.dump(dataset_config, file, default_flow_style=False)
 
@@ -115,7 +115,7 @@ print(ultralytics.checks())
 
 # Load YOLO model
 # model = YOLO("yolov11n.pt")
-model = YOLO("../conf/source_model/yolov8s.pt")
+model = YOLO("../conf/source_model/yolov8n.pt")
 
 # Enable Automatic Mixed Precision for better performance
 if torch.cuda.is_available():
@@ -131,12 +131,12 @@ results = model.train(
     batch=10,
     epochs=60,
     project=os.path.join(base_dir, "../data/results"),
-    name="big_model",
+    name="small_cassette",
     imgsz=640,
 )
 
 # Plot training results
-result_img_path = os.path.join(base_dir, "../data/results/big_model/results.png")
+result_img_path = os.path.join(base_dir, "../data/results/small_cassette/results.png")
 if os.path.exists(result_img_path):
     result_img = plt.imread(result_img_path)
     plt.figure(figsize=(10, 10))
