@@ -13,7 +13,7 @@ It does so by doing the following:
           would be 0.5 and 0.5.
     - It generates a dataset yaml configuration file for later training or if the need
       arises for reconstruction and saves it to `../conf`
-    - It checks for a YOLOv8 model (s in this case) and downloads to
+    - It checks for a YOLO11 model (s in this case) and downloads to
       `../conf/source_model/` if there isn't one there.
     - It then trains the model to recognise the objects and save the results in
       `../data/results/big_model/` and tries to display the result image.
@@ -115,7 +115,7 @@ print(ultralytics.checks())
 
 # Load YOLO model
 # model = YOLO("yolov11n.pt")
-model = YOLO("../conf/source_model/yolov11s.pt")
+model = YOLO("../conf/source_model/yolo11s.pt")
 
 # Enable Automatic Mixed Precision for better performance
 if torch.cuda.is_available():

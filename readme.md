@@ -108,12 +108,18 @@ same in terms of complexity, the computer systems can only run so much. This
 means that the source models have to be smaller, thus potentially compromising
 on accuracy.
 
+Currently, YOLO 11 and 8 from Ultralytics are being looked at. Specifically,
+m models and lower.
+
 ### Current state
 
 There are already 4 models. Yet, due to the limited amount of data, they might
 be retrained once new data is available.
 
 They have not also been properly tested.
+
+Testing out on YOLO11. So far the models is not that practical due to inaccurate
+results training on sample videos.
 
 ### Future plans
 
