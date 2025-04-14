@@ -1,3 +1,13 @@
+"""
+Compares the images and their labels. If there is a mismatch between an image
+name and its label, print it to the output.
+
+An image is a jpg file, a label is a txt file. They are considered "matched" if
+their names barring their extensions are the same.
+
+
+"""
+
 import os
 
 # Define your directories

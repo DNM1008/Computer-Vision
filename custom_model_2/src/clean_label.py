@@ -8,6 +8,13 @@ import os
 
 
 def process_txt_files(directory):
+    """
+    Check every line in every .txt file in the given directory starts with 0, if
+    not then replace the first char with 0
+
+    Args:
+        directory (str): directory of the .txt files
+    """
     for filename in os.listdir(directory):
         if filename.endswith(".txt"):
             filepath = os.path.join(directory, filename)

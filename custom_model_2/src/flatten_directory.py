@@ -1,10 +1,22 @@
+"""
+This program flatten the directory so that there are no needless
+folders/subfolders
+
+"""
+
 import os
 import shutil
 from collections import defaultdict
 
 
 def flatten_directory(base_dir):
-    """Efficiently moves all files from subdirectories into the base directory and removes empty folders."""
+    """
+    Efficiently moves all files from subdirectories into the base directory
+    and removes empty folders.
+
+    Args:
+        base_dir (str): the directory that needs to be flattened.
+    """
     file_counter = defaultdict(int)
 
     for root, _, files in os.walk(

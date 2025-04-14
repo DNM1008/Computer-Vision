@@ -1,3 +1,8 @@
+"""
+Convert jpg files to png files for easy management.
+
+"""
+
 import os
 from PIL import Image
 

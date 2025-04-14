@@ -1,8 +1,18 @@
+"""
+Convert json labels to txt labels.
+
+Labelme.exe returns labels, but YOLO takes txt labels to train. Furthermore,
+YOLO is different in that the class name is an integer, instead of top left and
+bottom right bounding box coordinates
+
+
+"""
+
 import json
 import os
 
 # Input directory (current directory)
-json_dir = "../data/source_data/data_full"
+json_dir = "../data/source_data/images_part_9"
 
 # Output directory
 output_dir = "../data/source_data/big_labels"

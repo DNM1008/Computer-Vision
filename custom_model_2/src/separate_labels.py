@@ -89,8 +89,8 @@ def process_labels_and_images():
     - Saves both label and image into class-specific folders.
     """
     # ==== SET DIRECTORIES ====
-    labels_dir = "../data/source_data/big_labels/"
-    images_dir = "../data/source_data/big_images/"
+    labels_dir = "../data/source_data/big_labels"
+    images_dir = "../data/source_data/images_part_9"
     output_root = os.path.join(os.getcwd(), "../data/source_data/")
     # =========================
 
@@ -98,9 +98,9 @@ def process_labels_and_images():
 
     # Create output folder structure for each class
     class_dirs = {
-        "casset": os.path.join(output_root, "casset"),
-        "tien": os.path.join(output_root, "tien"),
-        "atm": os.path.join(output_root, "atm"),
+        "casset": os.path.join(output_root, "small_cassette"),
+        "tien": os.path.join(output_root, "small_tien"),
+        "atm": os.path.join(output_root, "small_atm"),
     }
 
     label_files = [file for file in os.listdir(labels_dir) if file.endswith(".txt")]
