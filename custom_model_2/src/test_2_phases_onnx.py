@@ -7,9 +7,11 @@ Mock test of 2 phase model
 import cv2
 import time
 from ultralytics import YOLO
+import onnxruntime as ort
+import numpy as np
 
 # Constants
-big_model = "../data/results/big_model_11/weights/best_m.pt"
+big_model = "../data/results/big_model_11/weights/best_m.onnx"
 people_counter_model = YOLO("../conf/source_model/yolo11m.pt")
 ALERT_CLASSES = ["cassette", "atm"]
 PEOPLE_CLASS = "person"
@@ -52,10 +54,23 @@ def draw_text_with_background(
     )
 
 
-def process_video(input_video_path, output_video_path, model_path):
-    model = YOLO(model_path)
-    cap = cv2.VideoCapture(input_video_path)
+def preprocess_frame_for_onnx(frame, input_shape=(640, 640)):
+    resized = cv2.resize(frame, input_shape)
+    rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+    normalized = rgb.astype(np.float32) / 255.0
+    transposed = np.transpose(normalized, (2, 0, 1))  # HWC -> CHW
+    input_tensor = np.expand_dims(transposed, axis=0)  # Add batch dim
+    return input_tensor
 
+
+def process_video(input_video_path, output_video_path, model_path):
+    # ONNX Runtime session
+    session = ort.InferenceSession(
+        model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
+    )
+    input_name = session.get_inputs()[0].name
+
+    cap = cv2.VideoCapture(input_video_path)
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
@@ -68,26 +83,15 @@ def process_video(input_video_path, output_video_path, model_path):
     output_video_path = output_video_path.replace(".mkv", ".mp4")
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_width, frame_height))
 
-    if not out.isOpened():
-        print("Error: VideoWriter failed to initialize.")
-        return
-
-    # State
     over_threshold_counter = 0
     draw_red_border = False
     counting_active = False
     both_last_seen_time = None
-
-    # Timing trackers
     alert_frame_time = 0.0
     alert_frame_count = 0
     empty_frame_time = 0.0
     empty_frame_count = 0
-
     frame_index = 0
-
-    # Frame time tracking
-    frame_processing_time_ms = 0
 
     while True:
         ret, frame = cap.read()
@@ -97,13 +101,20 @@ def process_video(input_video_path, output_video_path, model_path):
         frame_start_time = time.time()
         current_time = time.time()
 
-        results = model(frame, conf=0.5)
-        detected_classes = [model.names[int(cls)] for cls in results[0].boxes.cls]
+        # Preprocess and run ONNX model
+        input_tensor = preprocess_frame_for_onnx(frame)
+        outputs = session.run(None, {input_name: input_tensor})
 
-        # Detection flags
+        # You may need to decode outputs depending on your model
+        # Here we assume you're using a YOLO-like model; if you used Ultralytics export, use:
+        # boxes, scores, classes = decode_yolo_outputs(outputs[0])
+
+        # You need to modify this part based on your ONNX model output format
+        detected_classes = []  # Placeholder
+        # TODO: decode ONNX output and populate `detected_classes`
+
         detected = all(cls in detected_classes for cls in ALERT_CLASSES)
 
-        # Update counting status
         if detected:
             counting_active = True
             both_last_seen_time = current_time
@@ -127,7 +138,6 @@ def process_video(input_video_path, output_video_path, model_path):
                     person_boxes.append(box.cpu().numpy())
                     person_count += 1
 
-            # Threshold logic
             if person_count != PEOPLE_THRESHOLD:
                 over_threshold_counter += 1
             else:
@@ -141,21 +151,14 @@ def process_video(input_video_path, output_video_path, model_path):
             empty_frame_time += time.time() - frame_start_time
             empty_frame_count += 1
 
-        # Annotate main model detections
-        annotated_frame = results[0].plot()
-
-        # Calculate processing time for current frame
-        frame_processing_time_ms = (time.time() - frame_start_time) * 1000
-
-        # Draw person boxes
+        # Annotate frame manually (since plot() is not available here)
         for box in person_boxes:
             x1, y1, x2, y2 = map(int, box)
-            cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), (255, 255, 0), 2)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 0), 2)
 
-        # Draw person count
         if counting_active:
             cv2.putText(
-                annotated_frame,
+                frame,
                 f"People: {person_count}",
                 (10, 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
@@ -165,32 +168,27 @@ def process_video(input_video_path, output_video_path, model_path):
                 cv2.LINE_AA,
             )
 
-        # Red border
         if draw_red_border:
             cv2.rectangle(
-                annotated_frame,
+                frame,
                 (0, 0),
                 (frame_width - 1, frame_height - 1),
                 (0, 0, 255),
                 10,
             )
 
-        # Define overlay text
         status_text = "No triggers detected"
-        model_status = "Running: big_model"
+        model_status = "Running: big_model (ONNX)"
 
         if counting_active:
             status_text = "Counting people"
             model_status += " + people_counter"
 
-        # Draw status text
         draw_text_with_background(
-            annotated_frame, status_text, (10, frame_height - 60), bg_color=(0, 100, 0)
+            frame, status_text, (10, frame_height - 60), bg_color=(0, 100, 0)
         )
-
-        # Draw model info
         cv2.putText(
-            annotated_frame,
+            frame,
             model_status,
             (10, frame_height - 20),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -200,38 +198,32 @@ def process_video(input_video_path, output_video_path, model_path):
             cv2.LINE_AA,
         )
 
-        # Draw frame processing time
+        frame_processing_time_ms = (time.time() - frame_start_time) * 1000
         draw_text_with_background(
-            annotated_frame,
+            frame,
             f"{frame_processing_time_ms:.1f} ms",
             (frame_width - 180, 35),
             bg_color=(0, 0, 0),
         )
 
-        out.write(annotated_frame)
-
+        out.write(frame)
         print(
             f"Frame {frame_index} written | People: {person_count} | Counting: {counting_active}"
         )
         frame_index += 1
 
-    # Release
     cap.release()
     out.release()
     cv2.destroyAllWindows()
 
     print(f"Output video saved as {output_video_path}")
-
-    # Timing summary
     if empty_frame_count > 0:
         print(
-            f"Avg idle frame time: {empty_frame_time * 1000 /
-                                      empty_frame_count:.4f} ms"
+            f"Avg idle frame time: {empty_frame_time * 1000 / empty_frame_count:.4f} ms"
         )
     if alert_frame_count > 0:
         print(
-            f"Avg alert frame time: {alert_frame_time * 1000 /
-                                       alert_frame_count:.4f} ms"
+            f"Avg alert frame time: {alert_frame_time * 1000 / alert_frame_count:.4f} ms"
         )
 
 
