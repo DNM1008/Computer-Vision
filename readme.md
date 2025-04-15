@@ -121,6 +121,9 @@ They have not also been properly tested.
 Testing out on YOLO11. So far the models is not that practical due to inaccurate
 results training on sample videos.
 
+Trying out .onnx format. Its crossplatform compatibility is a trade-off against
+raw speed.
+
 ### Future plans
 
 - Test the existing models

@@ -235,8 +235,8 @@ def process_video(input_video_path, output_video_path, model_path):
         )
 
 
-input_video = "../../videos/raw/01_16_2025 4_05_59 PM (UTC+07_00).mkv"
+input_video = "../../videos/raw/3_31_2025 8_59_55 AM (UTC+07_00)_1.avi"
 output_video = (
-    "../../videos/results/01_16_2025 4_05_59 PM (UTC+07_00)_2_phases_yolo_11_m.mp4"
+    "../../videos/results/3_31_2025 8_59_55 AM (UTC+07_00)_1_2_phases_yolo_11_m.mp4"
 )
 process_video(input_video, output_video, big_model)

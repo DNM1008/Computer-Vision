@@ -1,11 +1,13 @@
 """
 YOLO Real-Time Object Detection with PyQt5 UI and RTSP Video Feed
 
-This application captures video from an RTSP stream, processes each frame using two YOLO models:
+This application captures video from an RTSP stream, processes each frame using
+two YOLO models:
 1. A custom model for specialized object detection.
-2. The YOLOv8m model to detect people.
+2. The YOLOv11m model to detect people.
 
-Detections are rendered and displayed in a PyQt5 GUI with annotated bounding boxes, labels, and FPS information.
+Detections are rendered and displayed in a PyQt5 GUI with annotated bounding
+boxes, labels, and FPS information.
 """
 
 import sys
@@ -21,10 +23,12 @@ from ultralytics import YOLO
 # --- Worker Thread for Detection ---
 class DetectionWorker(QThread):
     """
-    Worker thread to capture video frames and perform detection using YOLO models.
+    Worker thread to capture video frames and perform detection using YOLO
+    models.
 
     Attributes:
-        frame_updated (pyqtSignal): Signal emitted with the annotated frame, elapsed time, and FPS.
+        frame_updated (pyqtSignal): Signal emitted with the annotated frame,
+        elapsed time, and FPS.
     """
 
     frame_updated = pyqtSignal(np.ndarray, float, float)
@@ -39,18 +43,21 @@ class DetectionWorker(QThread):
         super().__init__()
         self.cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
         self.running = True
-        self.custom_model = YOLO("../conf/big_model.pt").to("cuda")
-        self.people_model = YOLO("../conf/yolov8m.pt").to("cuda")
+        self.custom_model = YOLO("../conf/big_model_m.pt").to("cuda")
+        self.people_model = YOLO("../conf/yolov11m.pt").to("cuda")
         self.PEOPLE_CLASS_ID = 0
         self.custom_class_names = self.custom_model.model.names
 
     def run(self):
         """
-        Continuously reads video frames, performs detection, and emits annotated results.
+        Continuously reads video frames, performs detection, and emits
+        annotated results.
         """
         while self.running and self.cap.isOpened():
             start_time = time.time()
             ret, frame = self.cap.read()
+            frame = cv2.resize(frame, (1280, 720))  # before display
+
             if not ret:
                 continue
 
@@ -61,7 +68,7 @@ class DetectionWorker(QThread):
 
             # --- Custom Model Detection ---
             custom_results = self.custom_model.predict(
-                resized_frame, conf=0.3, verbose=False
+                resized_frame, conf=0.5, verbose=False
             )[0]
             special_boxes = custom_results.boxes
             special_detected = len(special_boxes) > 0
@@ -104,7 +111,7 @@ class DetectionWorker(QThread):
 
                 cv2.putText(
                     annotated,
-                    f"People Count: {len(people_filtered)} (YOLOv8m)",
+                    f"People Count: {len(people_filtered)} (YOLOv11m)",
                     (20, 40),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     1,
@@ -125,14 +132,39 @@ class DetectionWorker(QThread):
             # Frame timing
             elapsed = time.time() - start_time
             fps = 1.0 / elapsed if elapsed > 0 else 0
+
+            # --- Draw frame time in top-right corner with background ---
+            text = f"{elapsed * 1000:.1f} ms"
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 0.8
+            thickness = 2
+            text_color = (255, 255, 0)
+            bg_color = (0, 0, 0)
+            (text_width, text_height), baseline = cv2.getTextSize(
+                text, font, font_scale, thickness
+            )
+            margin = 10
+            x = annotated.shape[1] - text_width - margin
+            y = margin + text_height
+
+            # Draw background rectangle
+            cv2.rectangle(
+                annotated,
+                (x - 5, y - text_height - 5),
+                (x + text_width + 5, y + baseline + 5),
+                bg_color,
+                thickness=-1,
+            )
+
+            # Draw text
             cv2.putText(
                 annotated,
-                f"Frame Time: {elapsed*1000:.1f} ms | FPS: {fps:.1f}",
-                (20, frame.shape[0] - 20),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.7,
-                (255, 255, 0),
-                2,
+                text,
+                (x, y),
+                font,
+                font_scale,
+                text_color,
+                thickness,
             )
 
             self.frame_updated.emit(annotated, elapsed, fps)
@@ -150,7 +182,8 @@ class DetectionWorker(QThread):
 # --- PyQt Main Window ---
 class VideoApp(QWidget):
     """
-    PyQt5 application window that displays live YOLO detection from an RTSP stream.
+    PyQt5 application window that displays live YOLO detection from an RTSP
+    stream.
     """
 
     def __init__(self):
@@ -171,7 +204,7 @@ class VideoApp(QWidget):
         self.worker.frame_updated.connect(self.update_frame)
         self.worker.start()
 
-    def update_frame(self, frame, elapsed, fps):
+    def update_frame(self, frame):
         """
         Update the displayed video frame in the UI.
 
