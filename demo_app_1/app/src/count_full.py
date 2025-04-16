@@ -199,8 +199,8 @@ class VideoProcessor:
         polygon_thickness: Line thickness for polygon drawing.
     """
 
-    # def __init__(self, model_path: str = "../data/yolov8l.pt"):
-    def __init__(self, model_path: str = "../data/best_big_model.pt"):
+    def __init__(self, model_path: str = "../data/yolov8l.pt"):
+        # def __init__(self, model_path: str = "../data/best_big_model.pt"):
         """
         Initialize the video processor.
 

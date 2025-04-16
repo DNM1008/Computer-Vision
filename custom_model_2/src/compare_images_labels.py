@@ -4,8 +4,6 @@ name and its label, print it to the output.
 
 An image is a jpg file, a label is a txt file. They are considered "matched" if
 their names barring their extensions are the same.
-
-
 """
 
 import os

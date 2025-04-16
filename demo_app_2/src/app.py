@@ -44,7 +44,7 @@ class DetectionWorker(QThread):
         self.cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
         self.running = True
         self.custom_model = YOLO("../conf/big_model_m.pt").to("cuda")
-        self.people_model = YOLO("../conf/yolov11m.pt").to("cuda")
+        self.people_model = YOLO("../conf/yolo11m.pt").to("cuda")
         self.PEOPLE_CLASS_ID = 0
         self.custom_class_names = self.custom_model.model.names
 

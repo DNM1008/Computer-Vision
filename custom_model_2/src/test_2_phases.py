@@ -13,9 +13,9 @@ big_model = "../data/results/big_model_11/weights/best_m.pt"
 people_counter_model = YOLO("../conf/source_model/yolo11m.pt")
 ALERT_CLASSES = ["cassette", "atm"]
 PEOPLE_CLASS = "person"
-PEOPLE_THRESHOLD = 3
+PEOPLE_THRESHOLD = 2
 ALERT_FRAME_COUNT = 5
-PEOPLE_COUNT_TIMEOUT = 2  # seconds
+PEOPLE_COUNT_TIMEOUT = 5  # seconds
 
 
 def draw_text_with_background(
@@ -74,6 +74,7 @@ def process_video(input_video_path, output_video_path, model_path):
 
     # State
     over_threshold_counter = 0
+    detected_counter = 0
     draw_red_border = False
     counting_active = False
     both_last_seen_time = None
@@ -97,7 +98,7 @@ def process_video(input_video_path, output_video_path, model_path):
         frame_start_time = time.time()
         current_time = time.time()
 
-        results = model(frame, conf=0.5)
+        results = model(frame, conf=0.2)
         detected_classes = [model.names[int(cls)] for cls in results[0].boxes.cls]
 
         # Detection flags
@@ -105,20 +106,25 @@ def process_video(input_video_path, output_video_path, model_path):
 
         # Update counting status
         if detected:
-            counting_active = True
-            both_last_seen_time = current_time
+            detected_counter += 1
+            if detected_counter >= 20:
+                counting_active = True
+                both_last_seen_time = current_time
         elif counting_active:
             if both_last_seen_time is not None and (
                 current_time - both_last_seen_time > PEOPLE_COUNT_TIMEOUT
             ):
                 counting_active = False
                 over_threshold_counter = 0
+                detected_counter = 0
+        else:
+            detected_counter = 0
 
         person_count = 0
         person_boxes = []
 
         if counting_active:
-            person_results = people_counter_model(frame)
+            person_results = people_counter_model(frame, conf=0.3)
             for box, cls_id in zip(
                 person_results[0].boxes.xyxy, person_results[0].boxes.cls
             ):
@@ -235,8 +241,6 @@ def process_video(input_video_path, output_video_path, model_path):
         )
 
 
-input_video = "../../videos/raw/3_31_2025 8_59_55 AM (UTC+07_00)_1.avi"
-output_video = (
-    "../../videos/results/3_31_2025 8_59_55 AM (UTC+07_00)_1_2_phases_yolo_11_m.mp4"
-)
+input_video = "../../videos/raw/source_3.mp4"
+output_video = "../../videos/results/test_7_2_phases_yolo_11_m.mp4"
 process_video(input_video, output_video, big_model)
