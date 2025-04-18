@@ -124,6 +124,8 @@ results training on sample videos.
 Trying out .onnx format. Its crossplatform compatibility is a trade-off against
 raw speed.
 
+Starting with facial recognition models, currentingly in demo app 3
+
 ### Future plans
 
 - Test the existing models

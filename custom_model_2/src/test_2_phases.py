@@ -7,6 +7,8 @@ Mock test of 2 phase model
 import cv2
 import time
 from ultralytics import YOLO
+from tqdm import tqdm
+import csv
 
 # Constants
 big_model = "../data/results/big_model_11/weights/best_m.pt"
@@ -55,6 +57,7 @@ def draw_text_with_background(
 def process_video(input_video_path, output_video_path, model_path):
     model = YOLO(model_path)
     cap = cv2.VideoCapture(input_video_path)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     if not cap.isOpened():
         print("Error: Could not open video.")
@@ -85,12 +88,28 @@ def process_video(input_video_path, output_video_path, model_path):
     empty_frame_time = 0.0
     empty_frame_count = 0
 
+    # Logging results to csv
+    csv_file = open("../conf/frame_object_count.csv", mode="w", newline="")
+    csv_writer = csv.writer(csv_file)
+    csv_writer.writerow(
+        [
+            "frame_id",
+            "atm_count",
+            "cassette_count",
+            "person_count",
+            "counting_active",
+            "compliance",
+        ]
+    )
+
+    # Preparing for loop
     frame_index = 0
+    compliance = None
 
     # Frame time tracking
     frame_processing_time_ms = 0
 
-    while True:
+    for _ in tqdm(range(total_frames), desc="Processing video"):
         ret, frame = cap.read()
         if not ret:
             break
@@ -121,6 +140,10 @@ def process_video(input_video_path, output_video_path, model_path):
 
         # Update detected_classes to reflect filtered ones
         detected_classes = filtered_classes
+
+        # Logging object detection
+        atm_count = detected_classes.count("atm")
+        cassette_count = detected_classes.count("cassette")
 
         # Detection flags
         detected = all(cls in detected_classes for cls in ALERT_CLASSES)
@@ -161,6 +184,7 @@ def process_video(input_video_path, output_video_path, model_path):
                 over_threshold_counter = 0
 
             draw_red_border = over_threshold_counter > ALERT_FRAME_COUNT
+            compliance = not draw_red_border
             alert_frame_time += time.time() - frame_start_time
             alert_frame_count += 1
         else:
@@ -171,23 +195,20 @@ def process_video(input_video_path, output_video_path, model_path):
         # Clone original names
         annotated_frame = frame.copy()  # Start with original frame
 
-        boxes = results[0].boxes
-        for i in range(len(boxes.cls)):
-            cls_id = int(boxes.cls[i])
-            class_name = model.names[cls_id]
+        for box, class_name in zip(filtered_boxes, filtered_classes):
+            cls_id = list(model.names.keys())[
+                list(model.names.values()).index(class_name)
+            ]
+            conf = (
+                results[0].boxes.conf[results[0].boxes.cls == cls_id][0].item()
+            )  # Gets the confidence for drawing
 
-            # Just modify the display label directly without changing model.names
+            x1, y1, x2, y2 = map(int, box)
+
             label = "opened atm" if class_name == "atm" else class_name
-            conf = boxes.conf[i].item()
-            x1, y1, x2, y2 = map(int, boxes.xyxy[i])
-
-            # Custom label
             label_text = f"{label} {conf:.2f}"
 
-            # Draw box
             cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-            # Draw label with background
             (w, h), _ = cv2.getTextSize(label_text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
             cv2.rectangle(
                 annotated_frame, (x1, y1 - h - 10), (x1 + w, y1), (0, 255, 0), -1
@@ -225,12 +246,49 @@ def process_video(input_video_path, output_video_path, model_path):
 
         # Red border
         if draw_red_border:
+            # Alternate red and green border every other frame
+            border_color = (0, 0, 255) if frame_index % 2 == 0 else (0, 255, 0)
+
+            # Draw blinking border
             cv2.rectangle(
                 annotated_frame,
                 (0, 0),
                 (frame_width - 1, frame_height - 1),
-                (0, 0, 255),
+                border_color,
                 10,
+            )
+
+            # Add "Compliance Error!" label in the center
+            label_text = "Compliance Error!"
+            font_scale = 2.0
+            thickness = 4
+            font = cv2.FONT_HERSHEY_SIMPLEX
+
+            (text_width, text_height), _ = cv2.getTextSize(
+                label_text, font, font_scale, thickness
+            )
+            center_x = (frame_width - text_width) // 2
+            center_y = (frame_height + text_height) // 2
+
+            # Background for text
+            cv2.rectangle(
+                annotated_frame,
+                (center_x - 20, center_y - text_height - 20),
+                (center_x + text_width + 20, center_y + 20),
+                (0, 0, 0),
+                -1,
+            )
+
+            # Draw text
+            cv2.putText(
+                annotated_frame,
+                label_text,
+                (center_x, center_y),
+                font,
+                font_scale,
+                (0, 0, 255),
+                thickness,
+                cv2.LINE_AA,
             )
 
         # Define overlay text
@@ -271,14 +329,29 @@ def process_video(input_video_path, output_video_path, model_path):
         print(
             f"Frame {frame_index} written | People: {person_count} | Counting: {counting_active}"
         )
+
+        if atm_count > 0 or cassette_count > 0 or person_count > 0:
+            csv_writer.writerow(
+                [
+                    frame_index,
+                    atm_count,
+                    cassette_count,
+                    person_count,
+                    counting_active,
+                    compliance,
+                ]
+            )
+
         frame_index += 1
 
     # Release
     cap.release()
     out.release()
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()
+    csv_file.close()
 
-    print(f"Output video saved as {output_video_path}")
+    print(f"Output video saved as {output_video_path}.")
+    print("Object count logged.")
 
     # Timing summary
     if empty_frame_count > 0:
@@ -293,6 +366,6 @@ def process_video(input_video_path, output_video_path, model_path):
         )
 
 
-input_video = "../../videos/raw/source_3.mp4"
-output_video = "../../videos/results/results_3.mp4"
+input_video = "../../videos/raw/source_full.mp4"
+output_video = "../../videos/results/results_full_custom_conf.mp4"
 process_video(input_video, output_video, big_model)
