@@ -403,7 +403,7 @@ class PolygonDetectionApp(QMainWindow):
 
         # Video display
         self.video_label = QLabel()
-        self.video_label.setMinimumSize(400, 400)
+        self.video_label.setMinimumSize(1600, 900)
         left_layout.addWidget(self.video_label)
 
         # Controls

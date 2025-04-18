@@ -21,5 +21,6 @@
 *.yaml
 *.zip
 .computervision/
+.facial_recognition/
 .debug/
 models/yolo/output_images/extracted_images/

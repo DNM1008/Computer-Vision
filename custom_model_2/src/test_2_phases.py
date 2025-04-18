@@ -98,8 +98,29 @@ def process_video(input_video_path, output_video_path, model_path):
         frame_start_time = time.time()
         current_time = time.time()
 
-        results = model(frame, conf=0.2)
-        detected_classes = [model.names[int(cls)] for cls in results[0].boxes.cls]
+        results = model(frame, conf=0.05)
+
+        # Class-specific confidence thresholds
+        class_conf_thresholds = {
+            "atm": 0.7,
+            "cassette": 0.2,
+        }
+
+        # Filter boxes based on custom thresholds
+        filtered_boxes = []
+        filtered_classes = []
+
+        for box, cls_id, conf in zip(
+            results[0].boxes.xyxy, results[0].boxes.cls, results[0].boxes.conf
+        ):
+            class_name = model.names[int(cls_id)]
+            if class_name in ALERT_CLASSES:
+                if conf >= class_conf_thresholds.get(class_name, 0.2):
+                    filtered_boxes.append(box)
+                    filtered_classes.append(class_name)
+
+        # Update detected_classes to reflect filtered ones
+        detected_classes = filtered_classes
 
         # Detection flags
         detected = all(cls in detected_classes for cls in ALERT_CLASSES)
@@ -147,8 +168,39 @@ def process_video(input_video_path, output_video_path, model_path):
             empty_frame_time += time.time() - frame_start_time
             empty_frame_count += 1
 
-        # Annotate main model detections
-        annotated_frame = results[0].plot()
+        # Clone original names
+        annotated_frame = frame.copy()  # Start with original frame
+
+        boxes = results[0].boxes
+        for i in range(len(boxes.cls)):
+            cls_id = int(boxes.cls[i])
+            class_name = model.names[cls_id]
+
+            # Just modify the display label directly without changing model.names
+            label = "opened atm" if class_name == "atm" else class_name
+            conf = boxes.conf[i].item()
+            x1, y1, x2, y2 = map(int, boxes.xyxy[i])
+
+            # Custom label
+            label_text = f"{label} {conf:.2f}"
+
+            # Draw box
+            cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+            # Draw label with background
+            (w, h), _ = cv2.getTextSize(label_text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+            cv2.rectangle(
+                annotated_frame, (x1, y1 - h - 10), (x1 + w, y1), (0, 255, 0), -1
+            )
+            cv2.putText(
+                annotated_frame,
+                label_text,
+                (x1, y1 - 5),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (0, 0, 0),
+                2,
+            )
 
         # Calculate processing time for current frame
         frame_processing_time_ms = (time.time() - frame_start_time) * 1000
@@ -242,5 +294,5 @@ def process_video(input_video_path, output_video_path, model_path):
 
 
 input_video = "../../videos/raw/source_3.mp4"
-output_video = "../../videos/results/test_7_2_phases_yolo_11_m.mp4"
+output_video = "../../videos/results/results_3.mp4"
 process_video(input_video, output_video, big_model)
